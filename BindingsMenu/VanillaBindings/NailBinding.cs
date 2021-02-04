@@ -11,6 +11,8 @@ namespace TogglableBindings.VanillaBindings
 {
     public sealed class NailBinding : Binding
     {
+        internal override bool IsVanillaBinding => true;
+
         [QuickSetting]
         public static int MaxBoundNailDamage { get; private set; } = 13;
 

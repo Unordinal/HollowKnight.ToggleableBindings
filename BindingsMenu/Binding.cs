@@ -31,6 +31,9 @@ namespace TogglableBindings
         [JsonProperty]
         internal bool WasApplied { get; private set; }
 
+        [JsonIgnore]
+        internal virtual bool IsVanillaBinding { get; }
+
         /// <summary>
         /// Creates a new binding with the specified name.
         /// </summary>

@@ -25,7 +25,7 @@ namespace TogglableBindings
         [QuickSetting(true, nameof(RegisteredBindings))]
         private static List<Binding> _serializableBindings = new(0);
 
-        private static List<Binding> _registeredBindings = new(4);
+        private static readonly List<Binding> _registeredBindings = new(4);
 
         public static ReadOnlyCollection<Binding> RegisteredBindings { get; } = new(_registeredBindings);
 
@@ -111,6 +111,12 @@ namespace TogglableBindings
         /// <summary>
         /// Deregister the specified binding, calling <see cref="Binding.Restore"/> on it and then removing it from <see cref="RegisteredBindings"/> and unsubscribing it from the binding
         /// applied/restored events before invoking <see cref="BindingDeregistered"/>.
+        /// <para/>
+        /// Note: You cannot deregister a binding that is part of the base game - the following types are base game bindings:
+        /// <br>• <see cref="NailBinding"/></br>
+        /// <br>• <see cref="ShellBinding"/></br>
+        /// <br>• <see cref="SoulBinding"/></br>
+        /// <br>• <see cref="CharmsBinding"/></br>
         /// </summary>
         /// <param name="binding">The binding to deregister.</param>
         public static void DeregisterBinding(Binding binding)
@@ -118,7 +124,18 @@ namespace TogglableBindings
             if (!IsBindingRegistered(binding))
                 return;
 
+            if (binding.IsVanillaBinding)
+                throw new ArgumentException("Cannot deregister a base game binding.");
+
             OnBindingDeregistered(binding);
+        }
+
+        private static void DeregisterBindingSilent(Binding binding)
+        {
+            binding.Applied -= OnBindingApplied;
+            binding.Restored -= OnBindingRestored;
+
+            _registeredBindings.Remove(binding);
         }
 
         private static void OnBindingRegistered(Binding binding)
@@ -173,7 +190,7 @@ namespace TogglableBindings
         {
             TogglableBindings.Instance.LogDebug(nameof(BindingsManager) + " OnDeserialized");
             foreach (var binding in RegisteredBindings.ToArray())
-                DeregisterBinding(binding);
+                DeregisterBindingSilent(binding);
 
             CoroutineController.Start(RegisterSerializedBindings());
         }

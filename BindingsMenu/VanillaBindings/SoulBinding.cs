@@ -11,6 +11,8 @@ namespace TogglableBindings.VanillaBindings
 {
     public class SoulBinding : Binding
     {
+        internal override bool IsVanillaBinding => true;
+
         private const string BindVesselOrbEvent = "BIND VESSEL ORB";
         private const string UnbindVesselOrbEvent = "UNBIND VESSEL ORB";
         private const string MPLoseEvent = "MP LOSE";

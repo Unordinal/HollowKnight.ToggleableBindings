@@ -12,6 +12,8 @@ namespace TogglableBindings.VanillaBindings
 {
     public class ShellBinding : Binding
     {
+        internal override bool IsVanillaBinding => true;
+
         [QuickSetting]
         public static int MaxBoundShellHealth { get; private set; } = 4;
 

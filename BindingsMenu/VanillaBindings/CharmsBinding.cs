@@ -18,6 +18,8 @@ namespace TogglableBindings.VanillaBindings
 {
     public class CharmsBinding : Binding
     {
+        internal override bool IsVanillaBinding => true;
+
         [QuickSetting]
         public static bool AllowEssentialCharms { get; private set; } = true;
 
