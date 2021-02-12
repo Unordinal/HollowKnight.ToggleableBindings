@@ -3,11 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TogglableBindings", "BindingsMenu\TogglableBindings.csproj", "{BA38E2AC-428F-47AB-878E-546AD8957335}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoHKUtils", "UnoHKUtils\UnoHKUtils.csproj", "{03248054-41E6-49B3-A1BB-357005DE3992}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoHKUtils.Tests", "UnoHKUtils.Tests\UnoHKUtils.Tests.csproj", "{DDEAF0A7-0044-4ECD-8C35-7D176B216CA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToggleableBindings", "ToggleableBindings\ToggleableBindings.csproj", "{BA38E2AC-428F-47AB-878E-546AD8957335}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8B37EC18-78EA-4984-BCC4-BED30BB736B7}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,10 +20,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BA38E2AC-428F-47AB-878E-546AD8957335}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BA38E2AC-428F-47AB-878E-546AD8957335}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BA38E2AC-428F-47AB-878E-546AD8957335}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BA38E2AC-428F-47AB-878E-546AD8957335}.Release|Any CPU.Build.0 = Release|Any CPU
 		{03248054-41E6-49B3-A1BB-357005DE3992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{03248054-41E6-49B3-A1BB-357005DE3992}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03248054-41E6-49B3-A1BB-357005DE3992}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -27,6 +28,10 @@ Global
 		{DDEAF0A7-0044-4ECD-8C35-7D176B216CA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDEAF0A7-0044-4ECD-8C35-7D176B216CA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDEAF0A7-0044-4ECD-8C35-7D176B216CA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA38E2AC-428F-47AB-878E-546AD8957335}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA38E2AC-428F-47AB-878E-546AD8957335}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA38E2AC-428F-47AB-878E-546AD8957335}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA38E2AC-428F-47AB-878E-546AD8957335}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
