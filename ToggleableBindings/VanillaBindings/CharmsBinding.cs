@@ -9,7 +9,7 @@ using HutongGames.PlayMaker;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
-using ToggleableBindings.Collections;
+using Newtonsoft.Json;
 using ToggleableBindings.HKQuickSettings;
 using UnityEngine;
 using Vasi;
@@ -23,7 +23,7 @@ namespace ToggleableBindings.VanillaBindings
         public static bool AllowEssentialCharms { get; private set; } = true;
 
         [QuickSetting("EssentialCharms")]
-        internal static readonly int[] _exemptCharms =
+        internal static int[] ExemptCharms =
         {
             2, // Compass for testing
             36, // Void Heart
@@ -45,7 +45,10 @@ namespace ToggleableBindings.VanillaBindings
         private const string CharmIndicatorCheckEvent = "CHARM INDICATOR CHECK";
 
         private readonly List<IDetour> _detours;
-        private NonNullArray<int> _previousEquippedCharms;
+
+        [JsonProperty(PropertyName = "PreviouslyEquippedCharms")]
+        private List<int> _previousEquippedCharms = new();
+
         private bool _wasOvercharmed;
 
         public CharmsBinding() : base(nameof(CharmsBinding))
@@ -85,14 +88,22 @@ namespace ToggleableBindings.VanillaBindings
         private IEnumerator OnAppliedCoroutine()
         {
             yield return new WaitWhile(() => HeroController.instance is null);
-            yield return null;
 
-            _previousEquippedCharms = PlayerData.instance.equippedCharms.ToArray();
-            _wasOvercharmed = PlayerData.instance.overcharmed;
-            PlayerData.instance.equippedCharms.Clear();
+            var equippedCharms = PlayerData.instance.equippedCharms;
+            if (!WasApplied)
+            {
+                _previousEquippedCharms = equippedCharms;
+                _wasOvercharmed = PlayerData.instance.overcharmed;
+            }
+            WasApplied = false;
+
+            // Creates a lookup where the 'true' key is an enumerable of charms that are exempt, and the 'false' key are the ones that aren't.
+            // If AllowEssentialCharms is false, then no charms are exempt.
+            var charmsAllowed = equippedCharms.ToLookup(id => AllowEssentialCharms && ExemptCharms.Contains(id));
+
+            PlayerData.instance.equippedCharms = charmsAllowed[true].ToList();
             PlayerData.instance.overcharmed = false;
-
-            ToggleCharms(_previousEquippedCharms, false);
+            ToggleCharms(charmsAllowed[false], false);
 
             PlayerData.instance.CalculateNotchesUsed();
             HeroController.instance.CharmUpdate();
@@ -107,7 +118,6 @@ namespace ToggleableBindings.VanillaBindings
 
         private IEnumerator OnRestoredCoroutine()
         {
-            yield return new WaitWhile(() => HeroController.instance is null);
             yield return null;
 
             ToggleCharms(PlayerData.instance.equippedCharms.ToArray(), false);
@@ -149,6 +159,11 @@ namespace ToggleableBindings.VanillaBindings
                         curr = replacementAction;
                         return;
                     }
+                    else if (curr is CheckBoundAndCharmIsExempt cbcie)
+                    {
+                        cbcie.Instance = this;
+                        return;
+                    }
                 }
             }
         }
@@ -166,7 +181,7 @@ namespace ToggleableBindings.VanillaBindings
             c.GotoNext
             (
                 MoveType.AfterLabel,
-                i => i.MatchCall(typeof(BossSequenceController), "get_BoundCharms"),
+                i => i.MatchCallOrCallvirt(typeof(BossSequenceController), "get_BoundCharms"),
                 i => i.MatchBrfalse(out _)
             );
 
@@ -180,7 +195,7 @@ namespace ToggleableBindings.VanillaBindings
             c.GotoNext
             (
                 MoveType.AfterLabel,
-                i => i.MatchCall(typeof(BossSequenceController), "get_BoundCharms"),
+                i => i.MatchCallOrCallvirt(typeof(BossSequenceController), "get_BoundCharms"),
                 i => i.MatchBrfalse(out _)
             );
 
@@ -213,7 +228,7 @@ namespace ToggleableBindings.VanillaBindings
                     if (AllowEssentialCharms)
                     {
                         var charm = Fsm.GetFsmInt("Current Item Number");
-                        if (charm is not null && _exemptCharms.Contains(charm.Value))
+                        if (charm is not null && ExemptCharms.Contains(charm.Value))
                             return DoEvent(TrueEvent);
                     }
                 }
