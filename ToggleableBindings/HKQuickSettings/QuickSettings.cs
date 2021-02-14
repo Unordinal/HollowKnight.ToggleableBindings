@@ -6,12 +6,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using GlobalEnums;
 using Modding;
 using Modding.Patches;
-using MonoMod.Utils;
 using Newtonsoft.Json;
 using ToggleableBindings.Extensions;
-using ToggleableBindings.HKQuickSettings.JsonNet;
+using ToggleableBindings.JsonNet;
 using UnityEngine;
 
 namespace ToggleableBindings.HKQuickSettings
@@ -24,6 +24,11 @@ namespace ToggleableBindings.HKQuickSettings
         public event Action? Initialized;
 
         /// <summary>
+        /// Called when this <see cref="QuickSettings"/> object finishes unloading.
+        /// </summary>
+        public event Action? Unloaded;
+
+        /// <summary>
         /// Called when the global settings are saved to file.
         /// </summary>
         public event Action? GlobalSettingsSaved;
@@ -34,12 +39,20 @@ namespace ToggleableBindings.HKQuickSettings
         public event Action? GlobalSettingsLoaded;
 
         /// <summary>
-        /// Called when save-specific settings are saved to file. The first parameter is the save slot ID.
+        /// Called when save-specific settings are saved to file.
+        /// When invoked via <see cref="On.GameManager.SaveGame"/>,
+        /// this is right before the actual game save is saved.
+        /// <para/>
+        /// The first parameter is the save slot ID.
         /// </summary>
         public event Action<int>? SaveSettingsSaved;
 
         /// <summary>
-        /// Called when save-specific settings are loaded from file. The first parameter is the save slot ID.
+        /// Called when save-specific settings are loaded from file.
+        /// When invoked via <see cref="On.GameManager.LoadGame"/>,
+        /// this is right after the actual game save is loaded.
+        /// <para/>
+        /// The first parameter is the save slot ID.
         /// </summary>
         public event Action<int>? SaveSettingsLoaded;
 
@@ -58,7 +71,9 @@ namespace ToggleableBindings.HKQuickSettings
             ReferenceLoopHandling = ReferenceLoopHandling.Error,
             TypeNameHandling = TypeNameHandling.Auto,
             ConstructorHandling = ConstructorHandling.Default,
-            ContractResolver = ShouldSerializeContractResolver.Instance
+            ContractResolver = ShouldSerializeContractResolver.Instance,
+            Binder = JsonSerializationBinder.Instance,
+            Error = LogAndIgnoreSerializationBindingErrors
         };
 
         private Assembly? _owningAssembly;
@@ -80,7 +95,7 @@ namespace ToggleableBindings.HKQuickSettings
         /// <summary>
         /// Gets the current save slot that's loaded, or <see langword="null"/> if there isn't one.
         /// </summary>
-        protected int? CurrentSaveSlot { get; private set; }
+        public int? CurrentSaveSlot { get; internal set; }
 
         /// <summary>
         /// Creates a new <see cref="QuickSettings"/> instance. In the case of this constructor failing,
@@ -136,6 +151,12 @@ namespace ToggleableBindings.HKQuickSettings
             LoadGlobalSettings();
             AddHooks();
 
+            if (GameManager.instance?.gameState is GameState.PLAYING or GameState.PAUSED)
+            {
+                CurrentSaveSlot = GameManager.instance.profileID;
+                LoadSaveSettings();
+            }
+
             Initialized?.Invoke();
         }
 
@@ -146,10 +167,8 @@ namespace ToggleableBindings.HKQuickSettings
         public void Unload()
         {
             RemoveHooks();
-
-            SaveGlobalSettings();
-            if (CurrentSaveSlot is not null)
-                SaveSaveSettings();
+            SaveAllSettings();
+            Unloaded?.Invoke();
         }
 
         /// <summary>
@@ -349,7 +368,9 @@ namespace ToggleableBindings.HKQuickSettings
         }
 
         /// <summary>
-        /// Saves the save settings to file. A save must be currently loaded. Called automatically via <see cref="On.GameManager.SaveGame"/>.
+        /// Saves the save settings to file. A save must be currently loaded. 
+        /// Called automatically via <see cref="On.GameManager.SaveGame"/> and happens before
+        /// the actual game save is saved.
         /// </summary>
         /// <exception cref="InvalidOperationException"/>
         public void SaveSaveSettings()
@@ -410,7 +431,7 @@ namespace ToggleableBindings.HKQuickSettings
             { }
             catch (FileNotFoundException ex)
             {
-                LogError("Tried to read from a settings file that doesn't exist.");
+                LogError("Tried to read from a settings file that doesn't exist: " + filePath);
                 LogDebug(ex);
             }
             catch (IOException ex)
@@ -435,6 +456,27 @@ namespace ToggleableBindings.HKQuickSettings
             Directory.CreateDirectory(SettingsDirectory);
         }
 
+        private static void LogAndIgnoreSerializationBindingErrors(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)
+        {
+            if (args.CurrentObject == args.ErrorContext.OriginalObject
+            && InnerExceptionsAndSelf(args.ErrorContext.Error).OfType<JsonSerializationBinderException>().Any()
+            && args.ErrorContext.OriginalObject.GetType().GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>)))
+            {
+                ToggleableBindings.Instance.LogWarn("Encountered a binding failure when attempting to deserialize the specified setting type: " + args.ErrorContext.Path);
+                ToggleableBindings.Instance.LogWarn("Ignore this if you recently uninstalled or disabled a mod.");
+                args.ErrorContext.Handled = true;
+            }
+
+            static IEnumerable<Exception> InnerExceptionsAndSelf(Exception ex)
+            {
+                while (ex is not null)
+                {
+                    yield return ex;
+                    ex = ex.InnerException;
+                }
+            }
+        }
+
         private void AddHooks()
         {
             On.GameManager.OnApplicationQuit += GameManager_OnApplicationQuit;
@@ -457,7 +499,7 @@ namespace ToggleableBindings.HKQuickSettings
             orig(self);
         }
 
-        private void GameManager_SetState(On.GameManager.orig_SetState orig, GameManager self, GlobalEnums.GameState newState)
+        private void GameManager_SetState(On.GameManager.orig_SetState orig, GameManager self, GameState newState)
         {
             orig(self, newState);
             if (newState == GlobalEnums.GameState.MAIN_MENU)
