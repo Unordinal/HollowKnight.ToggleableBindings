@@ -2,10 +2,13 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace ToggleableBindings.Collections
 {
+    /// <summary>
+    /// Represents an array that will never be null.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public readonly struct NonNullArray<T> : IEnumerable<T>
     {
         private static T[] Empty { get; } = new T[0];
