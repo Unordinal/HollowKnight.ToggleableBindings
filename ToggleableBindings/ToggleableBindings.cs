@@ -1,4 +1,11 @@
-﻿using System.Linq;
+﻿#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using GlobalEnums;
 using Modding;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.HKQuickSettings;
@@ -8,11 +15,13 @@ using Vasi;
 
 namespace ToggleableBindings
 {
-    public class ToggleableBindings : Mod, ITogglableMod
+    public sealed partial class ToggleableBindings : Mod, ITogglableMod
     {
-        public static ToggleableBindings Instance { get; private set; }
+        [NotNull, DisallowNull]
+        public static ToggleableBindings? Instance { get; private set; }
 
-        public QuickSettings Settings { get; } = new();
+        [NotNull, DisallowNull]
+        public QuickSettings? Settings { get; private set; }
 
         public ToggleableBindings() : base()
         {
@@ -24,59 +33,19 @@ namespace ToggleableBindings
 
         public override void Initialize()
         {
+            AddHooks();
+            Settings = new();
             BindingManager.Initialize();
-            On.GameManager.Update += GameManager_Update;
-        }
-
-        private void GameManager_Update(On.GameManager.orig_Update orig, GameManager self)
-        {
-            if (Input.GetKeyDown(KeyCode.G))
-            {
-                foreach (var binding in BindingManager.RegisteredBindings)
-                    Log(binding.Name + " - Applied: " + binding.IsApplied);
-                foreach (var evnt in EventRegister.eventRegister)
-                    Log(evnt.Key + ": " + string.Join(", ", evnt.Value.Select(e => e.gameObject.ListHierarchy()).ToArray()));
-            }
-            if (Input.GetKeyDown(KeyCode.H))
-            {
-                var binding = BindingManager.RegisteredBindings.Where(b => b.Name == nameof(NailBinding)).First();
-                if (binding.IsApplied)
-                    binding.Restore();
-                else
-                    binding.Apply();
-            }
-
-            if (Input.GetKeyDown(KeyCode.J))
-            {
-                var binding = BindingManager.RegisteredBindings.Where(b => b.Name == nameof(ShellBinding)).First();
-                if (binding.IsApplied)
-                    binding.Restore();
-                else
-                    binding.Apply();
-            }
-
-            if (Input.GetKeyDown(KeyCode.K))
-            {
-                var binding = BindingManager.RegisteredBindings.Where(b => b.Name == nameof(SoulBinding)).First();
-                if (binding.IsApplied)
-                    binding.Restore();
-                else
-                    binding.Apply();
-            }
-
-            if (Input.GetKeyDown(KeyCode.L))
-            {
-                var binding = BindingManager.RegisteredBindings.Where(b => b.Name == nameof(CharmsBinding)).First();
-                if (binding.IsApplied)
-                    binding.Restore();
-                else
-                    binding.Apply();
-            }
         }
 
         public void Unload()
         {
-            BindingManager.Unload(false);
+            RemoveHooks();
+            if (Settings.CurrentSaveSlot is not null)
+                Settings.SaveSaveSettings();
+
+            Settings.Unload();
+            BindingManager.Unload();
         }
 
         public override string GetVersion()
