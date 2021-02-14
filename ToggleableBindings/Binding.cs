@@ -7,6 +7,9 @@ using ToggleableBindings.VanillaBindings;
 
 namespace ToggleableBindings
 {
+    /// <summary>
+    /// Represents a binding - a modifier that changes the difficulty of the game when active.
+    /// </summary>
     [JsonObject]
     public abstract class Binding
     {
@@ -33,8 +36,13 @@ namespace ToggleableBindings
         [JsonIgnore]
         public bool IsVanillaBinding { get; }
 
+        /// <summary>
+        /// Gets whether this binding was applied when a save was saved. Can be used to adjust
+        /// <see cref="OnApplied"/> accordingly.
+        /// This property is set when the binding is serialized.
+        /// </summary>
         [JsonProperty]
-        internal bool WasApplied { get; private set; }
+        protected internal bool WasApplied { get; protected set; }
 
         /// <summary>
         /// Creates a new binding with the specified name.
@@ -46,7 +54,7 @@ namespace ToggleableBindings
                 throw new ArgumentNullException(nameof(name));
 
             Name = name;
-            if (GetType().IsDefined(typeof(VanillaBindingAttribute), false)) // Derived class has VanillaBindingAttribute applied to it.
+            if (IsVanilla(GetType())) // Derived class has VanillaBindingAttribute applied to it.
                 IsVanillaBinding = true;
         }
 
@@ -150,6 +158,17 @@ namespace ToggleableBindings
         private void OnSerializing(StreamingContext context)
         {
             WasApplied = IsApplied;
+        }
+
+        [OnSerialized]
+        private void OnSerialized(StreamingContext context)
+        {
+            WasApplied = false;
+        }
+
+        internal static bool IsVanilla(Type bindingType)
+        {
+            return bindingType.IsDefined(typeof(VanillaBindingAttribute), false);
         }
     }
 }

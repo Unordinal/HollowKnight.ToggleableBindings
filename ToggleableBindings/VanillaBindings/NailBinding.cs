@@ -24,7 +24,7 @@ namespace ToggleableBindings.VanillaBindings
             var boundNailGetter = typeof(BossSequenceController).GetMethod($"get_BoundNail", BindingFlags.Public | BindingFlags.Static);
             var boundNailDamageGetter = typeof(BossSequenceController).GetMethod("get_BoundNailDamage", BindingFlags.Public | BindingFlags.Static);
 
-            _detours = new()
+            _detours = new(2)
             {
                 new Hook(boundNailGetter, new Func<bool>(() => true), TBConstants.HookManualApply),
                 new Hook(boundNailDamageGetter, new Func<int>(BoundNailDamageOverride), TBConstants.HookManualApply)
@@ -33,7 +33,6 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnApplied()
         {
-            On.GameManager.FinishedEnteringScene += GameManager_FinishedEnteringScene;
             IL.BossSequenceController.RestoreBindings += BossSequenceController_RestoreBindings;
             foreach (var detour in _detours)
                 detour.Apply();
@@ -43,47 +42,30 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnRestored()
         {
-            On.GameManager.FinishedEnteringScene -= GameManager_FinishedEnteringScene;
             IL.BossSequenceController.RestoreBindings -= BossSequenceController_RestoreBindings;
             foreach (var detour in _detours)
                 detour.Undo();
 
-            CoroutineController.Start(OnRestoredCoroutine());
-        }
-
-        private IEnumerator OnAppliedCoroutine()
-        {
-            yield return new WaitWhile(() => HeroController.instance is null);
-            yield return null;
-            yield return new WaitWhile(() => !EventRegister.eventRegister.ContainsKey(ShowBoundNailEvent));
-
-            EventRegister.SendEvent(ShowBoundNailEvent);
-        }
-
-        private IEnumerator OnRestoredCoroutine()
-        {
-            yield return new WaitWhile(() => HeroController.instance is null);
-            yield return null;
-
             EventRegister.SendEvent(HideBoundNailEvent);
-        }
-
-        private void GameManager_FinishedEnteringScene(On.GameManager.orig_FinishedEnteringScene orig, GameManager self)
-        {
-            orig(self);
-            CoroutineController.Start(OnAppliedCoroutine());
         }
 
         private void BossSequenceController_RestoreBindings(ILContext il)
         {
             ILCursor c = new(il);
 
-            c.GotoNext
-            (
+            c.GotoNext(
                 i => i.MatchLdstr(HideBoundNailEvent),
-                i => i.MatchCall<EventRegister>("SendEvent")
+                i => i.MatchCall<EventRegister>(nameof(EventRegister.SendEvent))
             );
             c.RemoveRange(2);
+        }
+
+        private IEnumerator OnAppliedCoroutine()
+        {
+            yield return new WaitWhile(() => HeroController.instance is null);
+            yield return new WaitWhile(() => !EventRegister.eventRegister.ContainsKey(ShowBoundNailEvent));
+
+            EventRegister.SendEvent(ShowBoundNailEvent);
         }
 
         private static int BoundNailDamageOverride()
