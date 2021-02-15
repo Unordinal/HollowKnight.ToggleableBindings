@@ -17,6 +17,10 @@ namespace ToggleableBindings.Collections
 
         public TValue this[TKey key] => _dictionary[key];
 
+        /// <summary>
+        /// Creates a new read-only dictionary by wrapping the specified <see cref="IDictionary{TKey, TValue}"/>.
+        /// </summary>
+        /// <param name="dictionary">The dictionary to wrap.</param>
         public ReadOnlyDictionary(IDictionary<TKey, TValue> dictionary)
         {
             if (dictionary is null)

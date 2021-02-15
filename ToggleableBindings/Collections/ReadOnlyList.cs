@@ -22,7 +22,7 @@ namespace ToggleableBindings.Collections
         public T this[int index] => _list[index];
 
         /// <summary>
-        /// Creates a new read-only list by wrapping the specified list.
+        /// Creates a new read-only list by wrapping the specified <see cref="IList{T}"/>.
         /// </summary>
         /// <param name="list">The list to wrap.</param>
         public ReadOnlyList(IList<T> list)

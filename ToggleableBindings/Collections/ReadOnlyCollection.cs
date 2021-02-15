@@ -13,7 +13,7 @@ namespace ToggleableBindings.Collections
         public int Count => _collection.Count;
 
         /// <summary>
-        /// Creates a new read-only collection by wrapping the specified collection.
+        /// Creates a new read-only collection by wrapping the specified <see cref="ICollection{T}"/>.
         /// </summary>
         /// <param name="collection">The collection to wrap.</param>
         public ReadOnlyCollection(ICollection<T> collection)
