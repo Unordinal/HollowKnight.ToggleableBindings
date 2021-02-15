@@ -104,9 +104,11 @@
     <Compile Include="JsonNet\JsonSerializationBinder.cs" />
     <Compile Include="JsonNet\JsonSerializationBinderException.cs" />
     <Compile Include="TBConstants.cs" />
-    <Compile Include="ResultInfo.cs" />
+    <Compile Include="Utility\ResultInfo.cs" />
     <Compile Include="ToggleableBindings.cs" />
     <Compile Include="ToggleableBindings.Hooks.cs" />
+    <Compile Include="Utility\TryResult.cs" />
+    <Compile Include="Utility\TryResult{T}.cs" />
     <Compile Include="VanillaBindings\CharmsBinding.cs" />
     <Compile Include="VanillaBindings\NailBinding.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

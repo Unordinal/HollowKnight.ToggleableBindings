@@ -3,22 +3,40 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using ToggleableBindings.Collections;
 using ToggleableBindings.Exceptions;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.HKQuickSettings;
+using ToggleableBindings.Utility;
 using ToggleableBindings.VanillaBindings;
 using UnityEngine;
-
 using TB = ToggleableBindings.ToggleableBindings;
 
 namespace ToggleableBindings
 {
+    /// <summary>
+    /// Manages bindings and provides an API for applying and restoring them.
+    /// </summary>
     public static class BindingManager
     {
-        private const string ExcTypeIsBaseBinding = "The specified type parameter must not be equal to 'typeof(" + nameof(Binding) + ")'.";
-        private const string ExcTypeNotRegistered = "A binding of the specified type is not registered.";
+        #region Exception Messages
+
+        private const string ExcTypeIsBaseBinding = "The specified type must not be equal to 'typeof(" + nameof(Binding) + ")'.";
+        private const string ExcTypeIsNotBinding = "The specified type does not inherit from '" + nameof(Binding) + "'.";
+        private const string ExcNoBindingWithType = "No registered binding was of the specified type.";
+        private const string ExcNoBindingWithName = "No registered binding had the specified name.";
+        private const string ExcBindingAlreadyRegistered = "A binding with the same type is already registered.";
+
+        #endregion
+
+        private static readonly object _lock = new();
+        private static readonly Dictionary<Type, Binding> _registeredBindings = new();
+        private static readonly Dictionary<string, Type> _bindingNameTypeMap = new();
+        private static readonly Type _abstractBindingType = typeof(Binding);
+
+        [QuickSetting(true, nameof(RegisteredBindings))]
+        private static ICollection<Binding> _serializedBindings = new List<Binding>();
 
         /// <summary>
         /// Invoked when a binding is successfully registered.
@@ -29,18 +47,13 @@ namespace ToggleableBindings
         /// </summary>
         public static event BindingEventHandler? BindingDeregistered;
         /// <summary>
-        /// Invoked when a binding is applied (enabled).
+        /// Invoked when a registered binding is applied (enabled).
         /// </summary>
         public static event BindingEventHandler? BindingApplied;
         /// <summary>
-        /// Invoked when a binding is restored (disabled).
+        /// Invoked when a registered binding is restored (disabled).
         /// </summary>
         public static event BindingEventHandler? BindingRestored;
-
-        [QuickSetting(true, nameof(RegisteredBindings))]
-        private static List<Binding> _serializedBindings = new(0);
-
-        private static readonly Dictionary<Type, Binding> _registeredBindings = new(4);
 
         /// <summary>
         /// Gets a read-only dictionary that provides a view of the currently registered binding types and their associated binding objects.
@@ -49,27 +62,27 @@ namespace ToggleableBindings
 
         internal static void Initialize()
         {
-            AddHooks();
+            TB.MainMenuOrQuit += CleanUpForQuit;
+
             RegisterVanillaBindings();
         }
 
         internal static void Unload()
         {
-            RemoveHooks();
-            RestoreAllAndClear();
+            TB.MainMenuOrQuit -= CleanUpForQuit;
+
+            RestoreAndClearBindings();
         }
 
-        private static void AddHooks()
+        private static void RegisterVanillaBindings()
         {
-            TB.MainMenuOrQuit += CleanUpForSave;
+            RegisterBinding<NailBinding>();
+            RegisterBinding<ShellBinding>();
+            RegisterBinding<SoulBinding>();
+            RegisterBinding<CharmsBinding>();
         }
 
-        private static void RemoveHooks()
-        {
-            TB.MainMenuOrQuit -= CleanUpForSave;
-        }
-
-        private static void CleanUpForSave()
+        private static void CleanUpForQuit()
         {
             /*
              * There's probably a cleaner/better way to do this, but I can't think of it right now.
@@ -101,135 +114,138 @@ namespace ToggleableBindings
             {
                 TB.Instance.Settings.SaveSettingsSaved -= handler;
 
-                RestoreAllAndClear();
+                RestoreAndClearBindings();
             };
         }
 
-        private static void RestoreAllAndClear()
+        private static void RestoreAndClearBindings()
         {
-            foreach (var binding in _registeredBindings.Values)
+            foreach (var binding in RegisteredBindings.Values)
             {
                 binding.Restore();
                 binding.Applied -= OnBindingApplied;
                 binding.Restored -= OnBindingRestored;
             }
 
-            _registeredBindings.Clear();
+            lock (_lock)
+                _registeredBindings.Clear();
+        }
+
+        #region IsBindingRegistered
+
+        /// <summary>
+        /// Checks whether the specified binding is registered.
+        /// <para/>
+        /// Note that this will check if the type of <paramref name="binding"/> is registered first
+        /// and then check for reference equality between the
+        /// specified binding and the registered binding.
+        /// </summary>
+        /// <param name="binding">The binding to check for.</param>
+        /// <returns>
+        /// <see langword="true"/> if the specified binding is registered; otherwise, <see langword="false"/>.
+        /// Returns <see langword="false"/> if the type is registered but the registered binding isn't the
+        /// same reference as <paramref name="binding"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"/>
+        public static bool IsBindingRegistered(Binding binding)
+        {
+            if (binding is null)
+                throw new ArgumentNullException(nameof(binding));
+
+            lock (_lock)
+                return RegisteredBindings.TryGetValue(binding.GetType(), out var registered) && binding == registered;
         }
 
         /// <summary>
-        /// Checks to see if the specified type of binding is already registered.
+        /// Checks whether a binding of the specified type is registered.
         /// </summary>
-        /// <param name="bindingType">The type of binding to check the registration state of. Must not be equal to <c>typeof(<see cref="Binding"/>)</c>.</param>
-        /// <returns><see langword="true"/> if a binding of the given type is registered; otherwise, <see langword="false"/>.</returns>
+        /// <param name="bindingType">The type of the binding to check for.</param>
+        /// <returns><see langword="true"/> if a binding of the specified type is registered; otherwise, <see langword="false"/>.</returns>
         /// <exception cref="ArgumentException"/>
         /// <exception cref="ArgumentNullException"/>
         public static bool IsBindingRegistered(Type bindingType)
         {
-            EnsureTypeIsNotBaseBinding(bindingType, nameof(bindingType));
+            TypeIsValidBinding(bindingType, nameof(bindingType)).ThrowIfUnsuccessful();
 
-            return RegisteredBindings.ContainsKey(bindingType);
+            lock (_lock)
+                return RegisteredBindings.ContainsKey(bindingType);
         }
 
-        /// <typeparam name="T">The type of binding. <c>typeof(<typeparamref name="T"/>)</c> must not be equal to <c>typeof(<see cref="Binding"/>)</c>.</typeparam>
-        /// <inheritdoc cref="IsBindingRegistered(Type)" path="//*[not(self::exception)]"/>
+        /// <summary>
+        /// Checks whether a binding with the specified name is registered.
+        /// </summary>
+        /// <param name="bindingName">The name of the binding to check for.</param>
+        /// <returns><see langword="true"/> if a binding with the specified name is registered; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"/>
+        public static bool IsBindingRegistered(string bindingName)
+        {
+            if (bindingName is null)
+                throw new ArgumentNullException(nameof(bindingName));
+
+            lock (_lock)
+                return _bindingNameTypeMap.ContainsKey(bindingName);
+        }
+
+        /// <typeparam name="T"><inheritdoc cref="IsBindingRegistered(Type)" path="/param[1]"/></typeparam>
         /// <exception cref="TypeArgumentException"/>
+        /// <inheritdoc cref="IsBindingRegistered(Type)" path="/*[not(self::exception)]"/>
         public static bool IsBindingRegistered<T>() where T : Binding
         {
-            EnsureTypeIsNotBaseBinding<T>(nameof(T));
+            TypeIsValidBinding<T>(nameof(T)).ThrowIfUnsuccessful();
 
-            return RegisteredBindings.ContainsKey(typeof(T));
+            lock (_lock)
+                return RegisteredBindings.ContainsKey(typeof(T));
         }
 
-        /// <summary>
-        /// Gets the registered binding with the specified name. If a binding with the specified name
-        /// is not registered, returns <see langword="null"/>.
-        /// </summary>
-        /// <param name="bindingName">The name of the binding to retrieve.</param>
-        /// <returns>The found <see cref="Binding"/> if successful; otherwise, <see langword="null"/>.</returns>
-        /// <exception cref="ArgumentException"/>
-        /// <exception cref="ArgumentNullException"/>
-        public static Binding? GetRegisteredBinding(string bindingName)
-        {
-            if (bindingName is null or "Binding")
-                return null;
-
-            Binding? result = RegisteredBindings.Values.FirstOrDefault(b => b.Name == bindingName);
-            if (result is null)
-                TB.Instance.LogDebug($"Attempted to get binding '{bindingName}' but a binding with that name is not registered.");
-
-            return result;
-        }
-        
-        /// <summary>
-        /// Gets the registered binding of the specified type. If a binding of the specified type
-        /// is not registered, returns <see langword="null"/>.
-        /// </summary>
-        /// <param name="bindingType">The type of the binding to retrieve. Must not be equal to <c>typeof(<see cref="Binding"/>)</c>.</param>
-        /// <returns>The found <see cref="Binding"/> if successful; otherwise, <see langword="null"/>.</returns>
-        /// <exception cref="ArgumentException"/>
-        /// <exception cref="ArgumentNullException"/>
-        public static Binding? GetRegisteredBinding(Type bindingType)
-        {
-            EnsureTypeIsNotBaseBinding(bindingType, nameof(bindingType));
-
-            RegisteredBindings.TryGetValue(bindingType, out Binding? result);
-            if (result is null)
-                TB.Instance.LogDebug($"Attempted to get binding '{bindingType.Name}' but a binding of that type is not registered.");
-
-            return result;
-        }
-
-        /// <typeparam name="T">The type of the binding to retrieve.</typeparam>
-        /// <inheritdoc cref="GetRegisteredBinding(Type)" path="/*[not(self::exception)]"/>
-        /// <exception cref="TypeArgumentException"/>
-        public static T? GetRegisteredBinding<T>() where T : Binding
-        {
-            EnsureTypeIsNotBaseBinding<T>(nameof(T));
-
-            RegisteredBindings.TryGetValue(typeof(T), out Binding? result);
-            if (result is null)
-                TB.Instance.LogDebug($"Attempted to get binding '{typeof(T).Name}' but a binding of that type is not registered.");
-
-            return (T?)result;
-        }
+        #endregion
 
         #region RegisterBinding
 
         /// <summary>
-        /// Register the specified binding, adding it to the <see cref="RegisteredBindings"/> list and subscribing it to
-        /// the binding applied/restored events before invoking <see cref="BindingRegistered"/>.
-        /// <para/>
-        /// Only one binding of a certain type can be registered at a time.
+        /// Registers the specified binding. Only one binding of a given type
+        /// can be registered at a time.
         /// </summary>
-        /// <param name="binding">The binding to register. The binding must not already be registered.</param>
+        /// <param name="binding">The binding to register.</param>
         /// <exception cref="ArgumentNullException"/>
-        /// <exception cref="InvalidOperationException">The given type of binding was already registered.</exception>
+        /// <exception cref="InvalidOperationException"/>
         public static void RegisterBinding(Binding binding)
         {
             if (binding is null)
                 throw new ArgumentNullException(nameof(binding));
 
-            if (IsBindingRegistered(binding.GetType()))
-                throw new InvalidOperationException("A binding of the same type is already registered.");
+            Type bindingType = binding.GetType();
+            if (IsBindingRegistered(bindingType))
+                throw new InvalidOperationException(ExcBindingAlreadyRegistered);
+
+            binding.Applied += OnBindingApplied;
+            binding.Restored += OnBindingRestored;
+
+            lock (_lock)
+            {
+                _registeredBindings.Add(bindingType, binding);
+                _bindingNameTypeMap.Add(binding.Name, bindingType);
+            }
 
             OnBindingRegistered(binding);
         }
 
         /// <summary>
-        /// Register a new binding of the specified type, adding it to the <see cref="RegisteredBindings"/> list and subscribing it to
-        /// the binding applied/restored events before invoking <see cref="BindingRegistered"/>.
-        /// <para/>
-        /// Only one binding of a certain type can be registered at a time.
+        /// Registers a new binding of the specified type. Only one binding of a given type can be registered at a time.
         /// </summary>
-        /// <typeparam name="T">The type of binding to register. A binding of this type must not already be registered.</typeparam>
-        /// <exception cref="InvalidOperationException">The given type of binding was already registered.</exception>
+        /// <typeparam name="T">The type of binding to create and register.</typeparam>
+        /// <exception cref="InvalidOperationException"/>
+        /// <exception cref="TypeArgumentException"/>
         public static void RegisterBinding<T>() where T : Binding, new()
         {
-            if (IsBindingRegistered<T>())
-                throw new InvalidOperationException("A binding of the same type is already registered.");
+            TypeIsValidBinding<T>(nameof(T)).ThrowIfUnsuccessful();
 
-            OnBindingRegistered(new T());
+            RegisterBinding(new T());
+        }
+
+        private static void OnBindingRegistered(Binding binding)
+        {
+            TB.Instance.LogDebug($"Registered binding '{binding.Name}'.");
+            BindingRegistered?.Invoke(binding);
         }
 
         #endregion
@@ -237,57 +253,193 @@ namespace ToggleableBindings
         #region DeregisterBinding
 
         /// <summary>
-        /// Deregister the specified binding, calling <see cref="Binding.Restore"/> on it and
-        /// then removing it from <see cref="RegisteredBindings"/> and unsubscribing it from the binding
-        /// applied/restored events before invoking <see cref="BindingDeregistered"/>.
-        /// <para>
-        /// Note: You cannot deregister a binding that is part of the base game - the following types are base game bindings:
-        /// <br>• <see cref="NailBinding"/></br>
-        /// <br>• <see cref="ShellBinding"/></br>
-        /// <br>• <see cref="SoulBinding"/></br>
-        /// <br>• <see cref="CharmsBinding"/></br>
-        /// </para>
+        /// Deregisters the specified binding.
         /// </summary>
         /// <param name="binding">The binding to deregister.</param>
-        /// <exception cref="ArgumentException"/>
         /// <exception cref="ArgumentNullException"/>
+        /// <exception cref="InvalidOperationException"/>
         public static void DeregisterBinding(Binding binding)
         {
             if (binding is null)
                 throw new ArgumentNullException(nameof(binding));
 
-            DeregisterBinding(binding.GetType());
+            Type bindingType = binding.GetType();
+            if (!IsBindingRegistered(bindingType))
+                throw new InvalidOperationException(ExcNoBindingWithType);
+
+            binding.Applied -= OnBindingApplied;
+            binding.Restored -= OnBindingRestored;
+
+            lock (_lock)
+            {
+                _registeredBindings.Remove(bindingType);
+                _bindingNameTypeMap.Remove(binding.Name);
+            }
+
+            OnBindingDeregistered(binding);
         }
 
         /// <summary>
-        /// Deregister the binding of the specified type, calling <see cref="Binding.Restore"/> on it and
-        /// then removing it from <see cref="RegisteredBindings"/> and unsubscribing it from the binding
-        /// applied/restored events before invoking <see cref="BindingDeregistered"/>.
-        /// <para><inheritdoc cref="DeregisterBinding(Binding)"/></para>
+        /// Deregisters the binding of the specified type.
         /// </summary>
-        /// <param name="bindingType">The type of the binding to deregister. Must not be equal to <c>typeof(<see cref="Binding"/>)</c>.</param>
+        /// <param name="bindingType">The type of the binding to deregister.</param>
         /// <exception cref="ArgumentException"/>
         /// <exception cref="ArgumentNullException"/>
+        /// <exception cref="InvalidOperationException"/>
         public static void DeregisterBinding(Type bindingType)
         {
-            if (bindingType is null)
-                throw new ArgumentNullException(nameof(bindingType));
+            TypeIsValidBinding(bindingType, nameof(bindingType)).ThrowIfUnsuccessful();
+            TypeIsRegisteredBinding(bindingType).ThrowIfUnsuccessful();
 
-            if (!IsBindingRegistered(bindingType))
-                return;
+            Binding binding;
+            lock (_lock)
+                binding = RegisteredBindings[bindingType];
 
-            if (Binding.IsVanilla(bindingType))
-                throw new ArgumentException("Cannot deregister a base game binding.");
+            DeregisterBinding(binding);
+        }
 
-            OnBindingDeregistered(RegisteredBindings[bindingType]);
+        /// <summary>
+        /// Deregisters the binding with the specified name.
+        /// </summary>
+        /// <param name="bindingName">The name of the binding to deregister.</param>
+        /// <exception cref="ArgumentNullException"/>
+        /// <exception cref="InvalidOperationException"/>
+        public static void DeregisterBinding(string bindingName)
+        {
+            if (bindingName is null)
+                throw new ArgumentNullException(nameof(bindingName));
+
+            if (!IsBindingRegistered(bindingName))
+                throw new InvalidOperationException(ExcNoBindingWithName);
+
+            Type bindingType;
+            lock (_lock)
+                bindingType = _bindingNameTypeMap[bindingName];
+
+            DeregisterBinding(bindingType);
         }
 
         /// <typeparam name="T"><inheritdoc cref="DeregisterBinding(Type)" path="/param[1]"/></typeparam>
-        /// <inheritdoc cref="DeregisterBinding(Type)" path="/*[not(self::exception)]"/>
+        /// <exception cref="InvalidOperationException"/>
         /// <exception cref="TypeArgumentException"/>
+        /// <inheritdoc cref="DeregisterBinding(Type)" path="/*[not(self::exception)]"/>
         public static void DeregisterBinding<T>() where T : Binding
         {
+            TypeIsValidBinding<T>(nameof(T)).ThrowIfUnsuccessful();
+
             DeregisterBinding(typeof(T));
+        }
+
+        private static void OnBindingDeregistered(Binding binding)
+        {
+            TB.Instance.LogDebug($"Deregistered binding '{binding.Name}'.");
+            BindingDeregistered?.Invoke(binding);
+        }
+
+        #endregion
+
+        #region GetBinding
+
+        /// <summary>
+        /// Gets the registered binding of the specified type.
+        /// </summary>
+        /// <param name="bindingType">The type of the binding to get.</param>
+        /// <returns>The registered binding of the specified type.</returns>
+        /// <exception cref="ArgumentException"/>
+        /// <exception cref="ArgumentNullException"/>
+        /// <exception cref="InvalidOperationException"/>
+        public static Binding GetBinding(Type bindingType)
+        {
+            TypeIsValidBinding(bindingType, nameof(bindingType)).ThrowIfUnsuccessful();
+
+            return TypeIsRegisteredBinding(bindingType).GetValueOrThrow();
+        }
+
+        /// <summary>
+        /// Gets the registered binding with the specified name.
+        /// </summary>
+        /// <param name="bindingName">The name of the binding to get.</param>
+        /// <returns>The registered binding with the specified name.</returns>
+        /// <exception cref="ArgumentNullException"/>
+        /// <exception cref="InvalidOperationException"/>
+        public static Binding GetBinding(string bindingName)
+        {
+            if (bindingName is null)
+                throw new ArgumentNullException(nameof(bindingName));
+
+            return NameIsRegisteredBinding(bindingName).GetValueOrThrow();
+        }
+
+        /// <typeparam name="T"><inheritdoc cref="GetBinding(Type)" path="/param[1]"/></typeparam>
+        /// <exception cref="InvalidOperationException"/>
+        /// <exception cref="TypeArgumentException"/>
+        /// <inheritdoc cref="GetBinding(Type)" path="/*[not(self::exception)]"/>
+        public static T GetBinding<T>() where T : Binding
+        {
+            TypeIsValidBinding<T>(nameof(T)).ThrowIfUnsuccessful();
+
+            return TypeIsRegisteredBinding<T>().GetValueOrThrow();
+        }
+
+        /// <summary>
+        /// Attempts to get the registered binding of the specified type.
+        /// </summary>
+        /// <param name="bindingType"><inheritdoc cref="GetBinding(Type)"/></param>
+        /// <param name="value">If successful, the matched binding; otherwise, <see langword="null"/>.</param>
+        /// <returns><see langword="true"/> if a binding of the specified type was found; otherwise, <see langword="false"/>.</returns>
+        public static bool TryGetBinding([NotNullWhen(true)] Type? bindingType, [NotNullWhen(true)] out Binding? value)
+        {
+            value = null;
+
+            var validBinding = TypeIsValidBinding(bindingType, nameof(bindingType));
+            if (!validBinding.IsSuccess)
+                return false;
+
+            var registeredBinding = TypeIsRegisteredBinding(bindingType);
+            if (!registeredBinding.IsSuccess)
+                return false;
+
+            value = registeredBinding.Value;
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to get a registered binding with the specified name.
+        /// </summary>
+        /// <param name="bindingName"><inheritdoc cref="GetBinding(string)" path="/param[1]"/></param>
+        /// <returns><see langword="true"/> if a binding with the specified name was found; otherwise, <see langword="false"/>.</returns>
+        /// <inheritdoc cref="TryGetBinding(Type?, out Binding?)"/>
+        public static bool TryGetBinding([NotNullWhen(true)] string? bindingName, [NotNullWhen(true)] out Binding? value)
+        {
+            value = null;
+
+            if (bindingName is null)
+                return false;
+
+            var registeredBinding = NameIsRegisteredBinding(bindingName);
+            if (!registeredBinding.IsSuccess)
+                return false;
+
+            value = registeredBinding.Value;
+            return true;
+        }
+
+        /// <typeparam name="T"><inheritdoc cref="TryGetBinding(Type?, out Binding?)" path="/param[1]"/></typeparam>
+        /// <inheritdoc cref="TryGetBinding(Type?, out Binding?)"/>
+        public static bool TryGetBinding<T>([NotNullWhen(true)] out T? value) where T : Binding
+        {
+            value = default;
+
+            var validBinding = TypeIsValidBinding<T>(nameof(T));
+            if (!validBinding.IsSuccess)
+                return false;
+
+            var registeredBinding = TypeIsRegisteredBinding<T>();
+            if (!registeredBinding.IsSuccess)
+                return false;
+
+            value = registeredBinding.Value;
+            return true;
         }
 
         #endregion
@@ -295,49 +447,44 @@ namespace ToggleableBindings
         #region ApplyBinding
 
         /// <summary>
-        /// Applies the specified registered binding, enabling its effects.
-        /// This will throw if the specified binding is not registered, and is
-        /// equivalent to calling <see cref="Binding.Apply"/> otherwise.
+        /// Applies the registered binding of the specified type.
         /// </summary>
-        /// <param name="binding">The binding to apply.</param>
-        /// <exception cref="ArgumentNullException"/>
-        /// <exception cref="InvalidOperationException"/>
-        public static void ApplyBinding(Binding binding)
-        {
-            EnsureBindingRegistered(binding);
-            binding.Apply();
-        }
-
-        /// <summary>
-        /// Applies the registered binding of the specified type, enabling its effects.
-        /// This will throw if a binding of the specified type is not registered.
-        /// </summary>
-        /// <param name="bindingType">The binding of the specified type to apply. Must not be <c>typeof(<see cref="Binding"/>)</c>.</param>
+        /// <param name="bindingType">The type of the binding to apply.</param>
         /// <exception cref="ArgumentException"/>
         /// <exception cref="ArgumentNullException"/>
         /// <exception cref="InvalidOperationException"/>
         public static void ApplyBinding(Type bindingType)
         {
-            EnsureTypeIsNotBaseBinding(bindingType, nameof(bindingType));
-
-            Binding? binding = GetRegisteredBinding(bindingType);
-            if (binding is null)
-                throw new InvalidOperationException(ExcTypeNotRegistered);
-
+            Binding binding = GetBinding(bindingType);
             binding.Apply();
         }
 
-        /// <typeparam name="T">The binding of the specified type to apply. Must not be <c>typeof(<see cref="Binding"/>)</c>.</typeparam>
+        /// <summary>
+        /// Applies the registered binding with the specified name.
+        /// </summary>
+        /// <param name="bindingName">The name of the binding to apply.</param>
+        /// <exception cref="ArgumentNullException"/>
+        /// <exception cref="InvalidOperationException"/>
+        public static void ApplyBinding(string bindingName)
+        {
+            Binding binding = GetBinding(bindingName);
+            binding.Apply();
+        }
+
+        /// <typeparam name="T"></typeparam>
         /// <exception cref="InvalidOperationException"/>
         /// <exception cref="TypeArgumentException"/>
         /// <inheritdoc cref="ApplyBinding(Type)" path="/*[not(self::exception)]"/>
         public static void ApplyBinding<T>() where T : Binding
         {
-            Binding? binding = GetRegisteredBinding<T>();
-            if (binding is null)
-                throw new InvalidOperationException(ExcTypeNotRegistered);
-
+            Binding binding = GetBinding<T>();
             binding.Apply();
+        }
+
+        private static void OnBindingApplied(Binding binding)
+        {
+            TB.Instance.LogDebug($"Applied binding '{binding.Name}'.");
+            BindingApplied?.Invoke(binding);
         }
 
         #endregion
@@ -345,175 +492,150 @@ namespace ToggleableBindings
         #region RestoreBinding
 
         /// <summary>
-        /// Restores the specified registered binding, removing its effects.
-        /// This will throw if the specified binding is not registered, and is
-        /// equivalent to calling <see cref="Binding.Restore"/> otherwise.
+        /// Restores the registered binding of the specified type.
         /// </summary>
-        /// <param name="binding">The binding to restore.</param>
+        /// <param name="bindingType">The type of the binding to restore.</param>
+        /// <exception cref="ArgumentException"/>
         /// <exception cref="ArgumentNullException"/>
         /// <exception cref="InvalidOperationException"/>
-        public static void RestoreBinding(Binding binding)
+        public static void RestoreBinding(Type bindingType)
         {
-            EnsureBindingRegistered(binding);
-
+            Binding binding = GetBinding(bindingType);
             binding.Restore();
         }
 
         /// <summary>
-        /// Restores the registered binding of the specified type, removing its effects.
-        /// This will throw if a binding of the specified type is not registered.
+        /// Restores the registered binding with the specified name.
         /// </summary>
-        /// <param name="bindingType">The binding of the specified type to restore.</param>
-        /// <exception cref="ArgumentException"/>
-        /// <inheritdoc cref="RestoreBinding(Binding)"/>
-        public static void RestoreBinding(Type bindingType)
+        /// <param name="bindingName">The name of the binding to restore.</param>
+        /// <exception cref="ArgumentNullException"/>
+        /// <exception cref="InvalidOperationException"/>
+        public static void RestoreBinding(string bindingName)
         {
-            EnsureTypeIsNotBaseBinding(bindingType, nameof(bindingType));
-            EnsureBindingRegistered(bindingType);
-
-            _registeredBindings[bindingType].Restore();
+            Binding binding = GetBinding(bindingName);
+            binding.Restore();
         }
 
-        /// <typeparam name="T">The binding of the specified type to restore.</typeparam>
+        /// <typeparam name="T"><inheritdoc cref="RestoreBinding(Type)" path="/param[1]"/></typeparam>
         /// <exception cref="InvalidOperationException"/>
         /// <exception cref="TypeArgumentException"/>
         /// <inheritdoc cref="RestoreBinding(Type)" path="/*[not(self::exception)]"/>
         public static void RestoreBinding<T>() where T : Binding
         {
-            EnsureTypeIsNotBaseBinding<T>(nameof(T));
-            EnsureBindingRegistered(typeof(T));
-
-            _registeredBindings[typeof(T)].Restore();
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        private static void ForceDeregisterBinding(Binding binding)
-        {
-            binding.Applied -= OnBindingApplied;
-            binding.Restored -= OnBindingRestored;
-
-            _registeredBindings.Remove(binding.GetType());
-        }
-
-        private static void ForceDeregisterBinding(Type bindingType)
-        {
-            ForceDeregisterBinding(_registeredBindings[bindingType]);
-        }
-
-        private static void OnBindingRegistered(Binding binding)
-        {
-            TB.Instance.LogDebug($"Registered binding '{binding.Name}'.");
-            binding.Applied += OnBindingApplied;
-            binding.Restored += OnBindingRestored;
-            _registeredBindings.Add(binding.GetType(), binding);
-
-            BindingRegistered?.Invoke(binding);
-        }
-
-        private static void OnBindingDeregistered(Binding binding)
-        {
-            TB.Instance.LogDebug($"Deregistered binding '{binding.Name}'.");
-            binding.Applied -= OnBindingApplied;
-            binding.Restored -= OnBindingRestored;
-            _registeredBindings.Remove(binding.GetType());
-
-            BindingDeregistered?.Invoke(binding);
-        }
-
-        private static void OnBindingApplied(Binding binding)
-        {
-            BindingApplied?.Invoke(binding);
+            Binding binding = GetBinding<T>();
+            binding.Restore();
         }
 
         private static void OnBindingRestored(Binding binding)
         {
+            TB.Instance.LogDebug($"Restored binding '{binding.Name}'.");
             BindingRestored?.Invoke(binding);
         }
 
-        private static void RegisterVanillaBindings()
-        {
-            TB.Instance.LogDebug("Registering vanilla bindings...");
-            RegisterBinding<NailBinding>();
-            RegisterBinding<ShellBinding>();
-            RegisterBinding<SoulBinding>();
-            RegisterBinding<CharmsBinding>();
-        }
+        #endregion
+
+        #region Validation Methods
 
         /// <summary>
-        ///
+        /// Checks that the passed type is not null,
+        /// is not equal to 'typeof(<see cref="Binding"/>)',
+        /// and inherits from <see cref="Binding"/>.
         /// </summary>
-        /// <param name="binding"></param>
-        /// <exception cref="ArgumentNullException"/>
-        /// <exception cref="InvalidOperationException"/>
-        private static void EnsureBindingRegistered(Binding binding)
-        {
-            if (binding is null)
-                throw new ArgumentNullException(nameof(binding));
-
-            EnsureBindingRegistered(binding.GetType());
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="bindingType"></param>
-        /// <exception cref="ArgumentNullException"/>
-        /// <exception cref="InvalidOperationException"/>
-        private static void EnsureBindingRegistered(Type bindingType)
-        {
-            if (bindingType is null)
-                throw new ArgumentNullException(nameof(bindingType));
-
-            if (!IsBindingRegistered(bindingType))
-                throw new InvalidOperationException(ExcTypeNotRegistered);
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="paramName"></param>
+        /// <param name="type">The type to check.</param>
+        /// <param name="paramName">The name of the parameter to show for argument exceptions.</param>
+        /// <returns>
+        /// <see cref="TryResult.Success"/> if successful;
+        /// otherwise, a <see cref="TryResult"/> containing the exception that would have been thrown.
+        /// </returns>
         /// <exception cref="ArgumentException"/>
         /// <exception cref="ArgumentNullException"/>
-        private static void EnsureTypeIsNotBaseBinding(Type type, string paramName)
+        private static TryResult TypeIsValidBinding([NotNull] Type? type, string paramName)
         {
             if (type is null)
-                throw new ArgumentNullException(paramName);
+#pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
+                return new ArgumentNullException(paramName);
+#pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
 
-            if (!type.IsAssignableTo(typeof(Binding)))
-                throw new ArgumentException("The specified type is not a valid binding.");
+            if (type == _abstractBindingType)
+                return new ArgumentException(ExcTypeIsBaseBinding, paramName);
 
-            if (type == typeof(Binding))
-                throw new ArgumentException(ExcTypeIsBaseBinding, paramName);
+            if (!type.IsAssignableTo(_abstractBindingType))
+                return new ArgumentException(ExcTypeIsNotBinding);
+
+            return TryResult.Success;
+        }
+
+        /// <typeparam name="T"></typeparam>
+        /// <exception cref="TypeArgumentException"/>
+        /// <inheritdoc cref="TypeIsValidBinding(Type?, string)" path="/*[not(self::exception)]"/>
+        private static TryResult TypeIsValidBinding<T>(string typeParamName)
+        {
+            if (typeof(T) == _abstractBindingType)
+                return new TypeArgumentException(ExcTypeIsBaseBinding, typeParamName);
+
+            return TryResult.Success;
         }
 
         /// <summary>
-        ///
+        /// Checks that the passed type is in the dictionary of registered bindings.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="typeParamName"></param>
-        /// <exception cref="TypeArgumentException"/>
-        private static void EnsureTypeIsNotBaseBinding<T>(string typeParamName)
+        /// <param name="type">The type to check.</param>
+        /// <returns><inheritdoc cref="TypeIsValidBinding(Type?, string)"/></returns>
+        /// <exception cref="InvalidOperationException"/>
+        private static TryResult<Binding> TypeIsRegisteredBinding(Type type)
         {
-            if (typeof(T) == typeof(Binding))
-                throw new TypeArgumentException(ExcTypeIsBaseBinding, typeParamName);
+            lock (_lock)
+            {
+                if (!RegisteredBindings.TryGetValue(type, out Binding? value))
+                    return new InvalidOperationException(ExcNoBindingWithType);
+
+                return value;
+            }
         }
+
+        /// <summary>
+        /// Checks that the passed name is in the name-to-type map.
+        /// </summary>
+        /// <param name="name">The name to check.</param>
+        /// <returns><inheritdoc cref="TypeIsRegisteredBinding(Type)"/></returns>
+        /// <exception cref="InvalidOperationException"/>
+        private static TryResult<Binding> NameIsRegisteredBinding(string name)
+        {
+            lock (_lock)
+            {
+                if (!_bindingNameTypeMap.TryGetValue(name, out Type? value))
+                    return new InvalidOperationException(ExcNoBindingWithName);
+
+                return TypeIsRegisteredBinding(value);
+            }
+        }
+
+        /// <typeparam name="T"><inheritdoc cref="TypeIsRegisteredBinding(Type)" path="/param[1]"/></typeparam>
+        /// <inheritdoc cref="TypeIsRegisteredBinding(Type)"/>
+        private static TryResult<T> TypeIsRegisteredBinding<T>() where T : Binding
+        {
+            lock (_lock)
+            {
+                if (!RegisteredBindings.TryGetValue(typeof(T), out Binding? value))
+                    return new InvalidOperationException(ExcNoBindingWithType);
+
+                return (T)value;
+            }
+        }
+
+        #endregion
 
         #region Serialization
 
         private static void OnSerializing()
         {
-            TB.Instance.LogDebug(nameof(BindingManager) + " OnSerializing");
-            _serializedBindings = _registeredBindings.Values.ToList();
+            TB.Instance.LogDebug(nameof(BindingManager) + ": OnSerializing");
+            _serializedBindings = _registeredBindings.Values;
         }
 
         private static void OnDeserialized()
         {
-            TB.Instance.LogDebug(nameof(BindingManager) + " OnDeserialized");
-
+            TB.Instance.LogDebug(nameof(BindingManager) + ": OnDeserialized");
             CoroutineController.Start(RegisterDeserializedBindings());
         }
 
@@ -523,10 +645,14 @@ namespace ToggleableBindings
 
             foreach (var binding in _serializedBindings)
             {
-                var bindingType = binding.GetType();
-
+                Type bindingType = binding.GetType();
                 if (IsBindingRegistered(bindingType))
-                    ForceDeregisterBinding(bindingType);
+                {
+                    binding.Applied -= OnBindingApplied;
+                    binding.Restored -= OnBindingRestored;
+                    lock (_lock)
+                        _registeredBindings.Remove(bindingType);
+                }
 
                 RegisterBinding(binding);
 
@@ -534,8 +660,6 @@ namespace ToggleableBindings
                     ApplyBinding(bindingType);
             }
         }
-
-        #endregion
 
         #endregion
     }

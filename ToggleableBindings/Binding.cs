@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
+using ToggleableBindings.Utility;
 using ToggleableBindings.VanillaBindings;
 
 namespace ToggleableBindings
@@ -120,8 +121,6 @@ namespace ToggleableBindings
             if (IsApplied)
                 return;
 
-            ToggleableBindings.Instance.LogDebug($"Binding '{Name}' applied.");
-
             IsApplied = true;
             OnApplied();
             Applied?.Invoke(this);
@@ -134,8 +133,6 @@ namespace ToggleableBindings
         {
             if (!IsApplied)
                 return;
-
-            ToggleableBindings.Instance.LogDebug($"Binding '{Name}' restored.");
 
             IsApplied = false;
             OnRestored();
