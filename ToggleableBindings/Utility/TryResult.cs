@@ -59,5 +59,6 @@ namespace ToggleableBindings.Utility
         public static TryResult Success { get; } = new TryResult();
 
         public static implicit operator TryResult(Exception value) => new(value);
+        public static implicit operator bool(TryResult value) => value.IsSuccess;
     }
 }

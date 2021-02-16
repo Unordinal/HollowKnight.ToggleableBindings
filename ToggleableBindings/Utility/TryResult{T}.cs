@@ -56,6 +56,6 @@ namespace ToggleableBindings.Utility
     {
         public static implicit operator TryResult<T>([AllowNull] T value) => new(value);
 
-        public static implicit operator TryResult<T>(Exception value) => value;
+        public static implicit operator TryResult<T>(Exception value) => new(default, value);
     }
 }
