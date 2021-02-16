@@ -2,7 +2,8 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -65,23 +66,13 @@
   <ItemGroup>
     <Compile Include="BackportedFeatures\Index.cs" />
     <Compile Include="BackportedFeatures\IsExternalInit.cs" />
-    <Compile Include="BackportedFeatures\Nullable\AllowNullAttribute.cs" />
-    <Compile Include="BackportedFeatures\Nullable\DisallowNullAttribute.cs" />
-    <Compile Include="BackportedFeatures\Nullable\DoesNotReturnAttribute.cs" />
-    <Compile Include="BackportedFeatures\Nullable\DoesNotReturnIfAttribute.cs" />
-    <Compile Include="BackportedFeatures\Nullable\MaybeNullAttribute.cs" />
-    <Compile Include="BackportedFeatures\Nullable\MaybeNullWhenAttribute.cs" />
-    <Compile Include="BackportedFeatures\Nullable\MemberNotNullAttribute.cs" />
-    <Compile Include="BackportedFeatures\Nullable\MemberNotNullWhenAttribute.cs" />
-    <Compile Include="BackportedFeatures\Nullable\NotNullAttribute.cs" />
-    <Compile Include="BackportedFeatures\Nullable\NotNullIfNotNullAttribute.cs" />
-    <Compile Include="BackportedFeatures\Nullable\NotNullWhenAttribute.cs" />
     <Compile Include="BackportedFeatures\Range.cs" />
     <Compile Include="BackportedFeatures\RuntimeHelpers.cs" />
     <Compile Include="BackportedFeatures\SkipLocalsInitAttribute.cs" />
     <Compile Include="Binding.cs" />
     <Compile Include="BindingEventHandler.cs" />
     <Compile Include="BindingManager.cs" />
+    <Compile Include="Collections\Concurrent\ConcurrentDictionary.cs" />
     <Compile Include="Collections\IReadOnlyCollection.cs" />
     <Compile Include="Collections\IReadOnlyDictionary.cs" />
     <Compile Include="Collections\IReadOnlyList.cs" />
@@ -117,7 +108,11 @@
     <Compile Include="VanillaBindings\VanillaBindingAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <PackageReference Include="Nullable">
+      <Version>1.3.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="CopyMod" AfterTargets="PostBuildEvent">

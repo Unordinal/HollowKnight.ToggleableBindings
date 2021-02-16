@@ -135,6 +135,9 @@ namespace ToggleableBindings.VanillaBindings
             EventRegister.SendEvent(HideBoundCharmsEvent);
 
             CharmsMenuFsm?.SetState("Activate UI"); // TODO: Test
+
+            _previousEquippedCharms.Clear();
+            _wasOvercharmed = false;
         }
 
         private void SetAllowedCharms()

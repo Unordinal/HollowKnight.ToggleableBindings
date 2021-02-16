@@ -4,7 +4,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using ToggleableBindings.Collections;
+using ToggleableBindings.Collections.Concurrent;
 using ToggleableBindings.Exceptions;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.HKQuickSettings;
@@ -16,7 +18,7 @@ using TB = ToggleableBindings.ToggleableBindings;
 namespace ToggleableBindings
 {
     /// <summary>
-    /// Manages bindings and provides an API for applying and restoring them.
+    /// Manages bindings and provides methods for retrieving, applying, and restoring them.
     /// </summary>
     public static class BindingManager
     {
@@ -25,18 +27,19 @@ namespace ToggleableBindings
         private const string ExcTypeIsBaseBinding = "The specified type must not be equal to 'typeof(" + nameof(Binding) + ")'.";
         private const string ExcTypeIsNotBinding = "The specified type does not inherit from '" + nameof(Binding) + "'.";
         private const string ExcNoBindingWithType = "No registered binding was of the specified type.";
-        private const string ExcNoBindingWithName = "No registered binding had the specified name.";
+        private const string ExcNoBindingWithID = "No registered binding had the specified ID.";
         private const string ExcBindingAlreadyRegistered = "A binding with the same type is already registered.";
+        private const string ExcDeregisterVanillaBinding = "Cannot deregister a base game (vanilla) binding.";
 
         #endregion
 
         private static readonly object _lock = new();
         private static readonly Dictionary<Type, Binding> _registeredBindings = new();
-        private static readonly Dictionary<string, Type> _bindingNameTypeMap = new();
-        private static readonly Type _abstractBindingType = typeof(Binding);
+        private static readonly Dictionary<string, Type> _bindingIDTypeMap = new();
+        private static readonly Type _baseBindingType = typeof(Binding);
 
         [QuickSetting(true, nameof(RegisteredBindings))]
-        private static ICollection<Binding> _serializedBindings = new List<Binding>();
+        private static List<Binding> _serializedBindings = new();
 
         /// <summary>
         /// Invoked when a binding is successfully registered.
@@ -64,22 +67,32 @@ namespace ToggleableBindings
         {
             TB.MainMenuOrQuit += CleanUpForQuit;
 
-            RegisterVanillaBindings();
+            EnsureVanillaBindings();
         }
 
         internal static void Unload()
         {
             TB.MainMenuOrQuit -= CleanUpForQuit;
 
-            RestoreAndClearBindings();
+            RestoreAllBindings();
         }
 
-        private static void RegisterVanillaBindings()
+        private static void EnsureVanillaBindings()
         {
-            RegisterBinding<NailBinding>();
-            RegisterBinding<ShellBinding>();
-            RegisterBinding<SoulBinding>();
-            RegisterBinding<CharmsBinding>();
+            lock (_lock)
+            {
+                if (!IsBindingRegistered<NailBinding>())
+                    RegisterBinding<NailBinding>();
+
+                if (!IsBindingRegistered<ShellBinding>())
+                    RegisterBinding<ShellBinding>();
+
+                if (!IsBindingRegistered<SoulBinding>())
+                    RegisterBinding<SoulBinding>();
+
+                if (!IsBindingRegistered<CharmsBinding>())
+                    RegisterBinding<CharmsBinding>();
+            }
         }
 
         private static void CleanUpForQuit()
@@ -114,21 +127,15 @@ namespace ToggleableBindings
             {
                 TB.Instance.Settings.SaveSettingsSaved -= handler;
 
-                RestoreAndClearBindings();
+                RestoreAllBindings();
+                EnsureVanillaBindings();
             };
         }
 
-        private static void RestoreAndClearBindings()
+        private static void RestoreAllBindings()
         {
             foreach (var binding in RegisteredBindings.Values)
-            {
                 binding.Restore();
-                binding.Applied -= OnBindingApplied;
-                binding.Restored -= OnBindingRestored;
-            }
-
-            lock (_lock)
-                _registeredBindings.Clear();
         }
 
         #region IsBindingRegistered
@@ -183,7 +190,7 @@ namespace ToggleableBindings
                 throw new ArgumentNullException(nameof(bindingName));
 
             lock (_lock)
-                return _bindingNameTypeMap.ContainsKey(bindingName);
+                return _bindingIDTypeMap.ContainsKey(bindingName);
         }
 
         /// <typeparam name="T"><inheritdoc cref="IsBindingRegistered(Type)" path="/param[1]"/></typeparam>
@@ -217,14 +224,7 @@ namespace ToggleableBindings
             if (IsBindingRegistered(bindingType))
                 throw new InvalidOperationException(ExcBindingAlreadyRegistered);
 
-            binding.Applied += OnBindingApplied;
-            binding.Restored += OnBindingRestored;
-
-            lock (_lock)
-            {
-                _registeredBindings.Add(bindingType, binding);
-                _bindingNameTypeMap.Add(binding.Name, bindingType);
-            }
+            AddBinding(binding);
 
             OnBindingRegistered(binding);
         }
@@ -254,6 +254,11 @@ namespace ToggleableBindings
 
         /// <summary>
         /// Deregisters the specified binding.
+        /// <para>
+        /// Note: Bindings should generally not be deregistered. If you'd like to control
+        /// whether or not they can be used, you should use <see cref="Binding.CanBeApplied"/>
+        /// instead.
+        /// </para>
         /// </summary>
         /// <param name="binding">The binding to deregister.</param>
         /// <exception cref="ArgumentNullException"/>
@@ -267,20 +272,14 @@ namespace ToggleableBindings
             if (!IsBindingRegistered(bindingType))
                 throw new InvalidOperationException(ExcNoBindingWithType);
 
-            binding.Applied -= OnBindingApplied;
-            binding.Restored -= OnBindingRestored;
-
-            lock (_lock)
-            {
-                _registeredBindings.Remove(bindingType);
-                _bindingNameTypeMap.Remove(binding.Name);
-            }
+            RemoveBinding(binding);
 
             OnBindingDeregistered(binding);
         }
 
         /// <summary>
         /// Deregisters the binding of the specified type.
+        /// <para><inheritdoc cref="DeregisterBinding(Binding)"/></para>
         /// </summary>
         /// <param name="bindingType">The type of the binding to deregister.</param>
         /// <exception cref="ArgumentException"/>
@@ -299,22 +298,23 @@ namespace ToggleableBindings
         }
 
         /// <summary>
-        /// Deregisters the binding with the specified name.
+        /// Deregisters the binding with the specified ID.
+        /// <para><inheritdoc cref="DeregisterBinding(Binding)"/></para>
         /// </summary>
-        /// <param name="bindingName">The name of the binding to deregister.</param>
+        /// <param name="bindingID">The ID of the binding to deregister.</param>
         /// <exception cref="ArgumentNullException"/>
         /// <exception cref="InvalidOperationException"/>
-        public static void DeregisterBinding(string bindingName)
+        public static void DeregisterBinding(string bindingID)
         {
-            if (bindingName is null)
-                throw new ArgumentNullException(nameof(bindingName));
+            if (bindingID is null)
+                throw new ArgumentNullException(nameof(bindingID));
 
-            if (!IsBindingRegistered(bindingName))
-                throw new InvalidOperationException(ExcNoBindingWithName);
+            if (!IsBindingRegistered(bindingID))
+                throw new InvalidOperationException(ExcNoBindingWithID);
 
             Type bindingType;
             lock (_lock)
-                bindingType = _bindingNameTypeMap[bindingName];
+                bindingType = _bindingIDTypeMap[bindingID];
 
             DeregisterBinding(bindingType);
         }
@@ -356,18 +356,18 @@ namespace ToggleableBindings
         }
 
         /// <summary>
-        /// Gets the registered binding with the specified name.
+        /// Gets the registered binding with the specified ID.
         /// </summary>
-        /// <param name="bindingName">The name of the binding to get.</param>
-        /// <returns>The registered binding with the specified name.</returns>
+        /// <param name="bindingID">The ID of the binding to get.</param>
+        /// <returns>The registered binding with the specified ID.</returns>
         /// <exception cref="ArgumentNullException"/>
         /// <exception cref="InvalidOperationException"/>
-        public static Binding GetBinding(string bindingName)
+        public static Binding GetBinding(string bindingID)
         {
-            if (bindingName is null)
-                throw new ArgumentNullException(nameof(bindingName));
+            if (bindingID is null)
+                throw new ArgumentNullException(nameof(bindingID));
 
-            return NameIsRegisteredBinding(bindingName).GetValueOrThrow();
+            return IDIsRegisteredBinding(bindingID).GetValueOrThrow();
         }
 
         /// <typeparam name="T"><inheritdoc cref="GetBinding(Type)" path="/param[1]"/></typeparam>
@@ -391,12 +391,12 @@ namespace ToggleableBindings
         {
             value = null;
 
-            var validBinding = TypeIsValidBinding(bindingType, nameof(bindingType));
-            if (!validBinding.IsSuccess)
+            bool validBinding = TypeIsValidBinding(bindingType, nameof(bindingType));
+            if (!validBinding)
                 return false;
 
-            var registeredBinding = TypeIsRegisteredBinding(bindingType);
-            if (!registeredBinding.IsSuccess)
+            TryResult<Binding> registeredBinding = TypeIsRegisteredBinding(bindingType);
+            if (!registeredBinding)
                 return false;
 
             value = registeredBinding.Value;
@@ -404,20 +404,20 @@ namespace ToggleableBindings
         }
 
         /// <summary>
-        /// Attempts to get a registered binding with the specified name.
+        /// Attempts to get a registered binding with the specified ID.
         /// </summary>
-        /// <param name="bindingName"><inheritdoc cref="GetBinding(string)" path="/param[1]"/></param>
+        /// <param name="bindingID"><inheritdoc cref="GetBinding(string)" path="/param[1]"/></param>
         /// <returns><see langword="true"/> if a binding with the specified name was found; otherwise, <see langword="false"/>.</returns>
         /// <inheritdoc cref="TryGetBinding(Type?, out Binding?)"/>
-        public static bool TryGetBinding([NotNullWhen(true)] string? bindingName, [NotNullWhen(true)] out Binding? value)
+        public static bool TryGetBinding([NotNullWhen(true)] string? bindingID, [NotNullWhen(true)] out Binding? value)
         {
             value = null;
 
-            if (bindingName is null)
+            if (bindingID is null)
                 return false;
 
-            var registeredBinding = NameIsRegisteredBinding(bindingName);
-            if (!registeredBinding.IsSuccess)
+            TryResult<Binding> registeredBinding = IDIsRegisteredBinding(bindingID);
+            if (!registeredBinding)
                 return false;
 
             value = registeredBinding.Value;
@@ -430,12 +430,12 @@ namespace ToggleableBindings
         {
             value = default;
 
-            var validBinding = TypeIsValidBinding<T>(nameof(T));
-            if (!validBinding.IsSuccess)
+            bool validBinding = TypeIsValidBinding<T>(nameof(T));
+            if (!validBinding)
                 return false;
 
-            var registeredBinding = TypeIsRegisteredBinding<T>();
-            if (!registeredBinding.IsSuccess)
+            TryResult<T> registeredBinding = TypeIsRegisteredBinding<T>();
+            if (!registeredBinding)
                 return false;
 
             value = registeredBinding.Value;
@@ -460,14 +460,14 @@ namespace ToggleableBindings
         }
 
         /// <summary>
-        /// Applies the registered binding with the specified name.
+        /// Applies the registered binding with the specified ID.
         /// </summary>
-        /// <param name="bindingName">The name of the binding to apply.</param>
+        /// <param name="bindingID">The ID of the binding to apply.</param>
         /// <exception cref="ArgumentNullException"/>
         /// <exception cref="InvalidOperationException"/>
-        public static void ApplyBinding(string bindingName)
+        public static void ApplyBinding(string bindingID)
         {
-            Binding binding = GetBinding(bindingName);
+            Binding binding = GetBinding(bindingID);
             binding.Apply();
         }
 
@@ -505,14 +505,14 @@ namespace ToggleableBindings
         }
 
         /// <summary>
-        /// Restores the registered binding with the specified name.
+        /// Restores the registered binding with the specified ID.
         /// </summary>
-        /// <param name="bindingName">The name of the binding to restore.</param>
+        /// <param name="bindingID">The ID of the binding to restore.</param>
         /// <exception cref="ArgumentNullException"/>
         /// <exception cref="InvalidOperationException"/>
-        public static void RestoreBinding(string bindingName)
+        public static void RestoreBinding(string bindingID)
         {
-            Binding binding = GetBinding(bindingName);
+            Binding binding = GetBinding(bindingID);
             binding.Restore();
         }
 
@@ -534,7 +534,33 @@ namespace ToggleableBindings
 
         #endregion
 
-        #region Validation Methods
+        #region Validation/Utility Methods
+
+        private static void AddBinding(Binding binding)
+        {
+            binding.Applied += OnBindingApplied;
+            binding.Restored += OnBindingRestored;
+
+            Type bindingType = binding.GetType();
+            lock (_lock)
+            {
+                _registeredBindings.Add(bindingType, binding);
+                _bindingIDTypeMap.Add(binding.ID, bindingType);
+            }
+        }
+
+        private static void RemoveBinding(Binding binding)
+        {
+            binding.Applied -= OnBindingApplied;
+            binding.Restored -= OnBindingRestored;
+
+            Type bindingType = binding.GetType();
+            lock (_lock)
+            {
+                _registeredBindings.Remove(bindingType);
+                _bindingIDTypeMap.Remove(binding.ID);
+            }
+        }
 
         /// <summary>
         /// Checks that the passed type is not null,
@@ -556,10 +582,10 @@ namespace ToggleableBindings
                 return new ArgumentNullException(paramName);
 #pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
 
-            if (type == _abstractBindingType)
+            if (type == _baseBindingType)
                 return new ArgumentException(ExcTypeIsBaseBinding, paramName);
 
-            if (!type.IsAssignableTo(_abstractBindingType))
+            if (!type.IsAssignableTo(_baseBindingType))
                 return new ArgumentException(ExcTypeIsNotBinding);
 
             return TryResult.Success;
@@ -570,7 +596,7 @@ namespace ToggleableBindings
         /// <inheritdoc cref="TypeIsValidBinding(Type?, string)" path="/*[not(self::exception)]"/>
         private static TryResult TypeIsValidBinding<T>(string typeParamName)
         {
-            if (typeof(T) == _abstractBindingType)
+            if (typeof(T) == _baseBindingType)
                 return new TypeArgumentException(ExcTypeIsBaseBinding, typeParamName);
 
             return TryResult.Success;
@@ -594,17 +620,17 @@ namespace ToggleableBindings
         }
 
         /// <summary>
-        /// Checks that the passed name is in the name-to-type map.
+        /// Checks that the passed ID is in the ID-to-type map.
         /// </summary>
-        /// <param name="name">The name to check.</param>
+        /// <param name="id">The ID to check.</param>
         /// <returns><inheritdoc cref="TypeIsRegisteredBinding(Type)"/></returns>
         /// <exception cref="InvalidOperationException"/>
-        private static TryResult<Binding> NameIsRegisteredBinding(string name)
+        private static TryResult<Binding> IDIsRegisteredBinding(string id)
         {
             lock (_lock)
             {
-                if (!_bindingNameTypeMap.TryGetValue(name, out Type? value))
-                    return new InvalidOperationException(ExcNoBindingWithName);
+                if (!_bindingIDTypeMap.TryGetValue(id, out Type? value))
+                    return new InvalidOperationException(ExcNoBindingWithID);
 
                 return TypeIsRegisteredBinding(value);
             }
@@ -630,7 +656,7 @@ namespace ToggleableBindings
         private static void OnSerializing()
         {
             TB.Instance.LogDebug(nameof(BindingManager) + ": OnSerializing");
-            _serializedBindings = _registeredBindings.Values;
+            _serializedBindings = _registeredBindings.Values.ToList();
         }
 
         private static void OnDeserialized()
@@ -643,21 +669,20 @@ namespace ToggleableBindings
         {
             yield return new WaitWhile(() => HeroController.instance is null);
 
-            foreach (var binding in _serializedBindings)
+            lock (_lock)
             {
-                Type bindingType = binding.GetType();
-                if (IsBindingRegistered(bindingType))
+                foreach (var binding in _serializedBindings)
                 {
-                    binding.Applied -= OnBindingApplied;
-                    binding.Restored -= OnBindingRestored;
-                    lock (_lock)
-                        _registeredBindings.Remove(bindingType);
+                    Type bindingType = binding.GetType();
+
+                    if (IsBindingRegistered(bindingType))
+                        RemoveBinding(binding);
+
+                    AddBinding(binding);
+
+                    if (binding.WasApplied)
+                        ApplyBinding(bindingType);
                 }
-
-                RegisterBinding(binding);
-
-                if (binding.WasApplied)
-                    ApplyBinding(bindingType);
             }
         }
 

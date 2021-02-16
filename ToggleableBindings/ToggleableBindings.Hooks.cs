@@ -49,12 +49,8 @@ namespace ToggleableBindings
             }
             if (Input.GetKeyDown(KeyCode.H))
             {
-                var binding = BindingManager.GetRegisteredBinding<NailBinding>();
-                if (binding is null)
-                {
-                    LogError("NailBinding is not registered!");
+                if (!BindingManager.TryGetBinding<NailBinding>(out var binding))
                     return;
-                }
 
                 if (binding.IsApplied)
                     binding.Restore();
@@ -64,8 +60,7 @@ namespace ToggleableBindings
 
             if (Input.GetKeyDown(KeyCode.J))
             {
-                var binding = BindingManager.GetRegisteredBinding<ShellBinding>();
-                if (binding is null)
+                if (!BindingManager.TryGetBinding<ShellBinding>(out var binding))
                     return;
 
                 if (binding.IsApplied)
@@ -76,8 +71,7 @@ namespace ToggleableBindings
 
             if (Input.GetKeyDown(KeyCode.K))
             {
-                var binding = BindingManager.GetRegisteredBinding<SoulBinding>();
-                if (binding is null)
+                if (!BindingManager.TryGetBinding<SoulBinding>(out var binding))
                     return;
 
                 if (binding.IsApplied)
@@ -88,8 +82,7 @@ namespace ToggleableBindings
 
             if (Input.GetKeyDown(KeyCode.L))
             {
-                var binding = BindingManager.GetRegisteredBinding<CharmsBinding>();
-                if (binding is null)
+                if (!BindingManager.TryGetBinding<CharmsBinding>(out var binding))
                     return;
 
                 if (binding.IsApplied)
@@ -100,8 +93,7 @@ namespace ToggleableBindings
             
             if (Input.GetKeyDown(KeyCode.Semicolon))
             {
-                var binding = BindingManager.GetRegisteredBinding("SpeedBinding");
-                if (binding is null)
+                if (!BindingManager.TryGetBinding("TestNewBinding::SpeedBinding", out var binding))
                     return;
 
                 if (binding.IsApplied)
