@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using ToggleableBindings;
 using UnityEngine;
@@ -12,9 +11,12 @@ namespace TestNewBinding
         [NotNull]
         private Rigidbody2D? _rb2d;
 
+        public override Sprite DefaultSprite => null!;
+
+        public override Sprite SelectedSprite => null!;
+
         public SpeedBinding() : base(nameof(SpeedBinding))
         {
-
         }
 
         protected override void OnApplied()

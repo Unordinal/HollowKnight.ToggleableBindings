@@ -1,8 +1,13 @@
 ﻿#nullable enable
 
 using System;
+using ToggleableBindings.Extensions;
+using ToggleableBindings.UI;
 using ToggleableBindings.VanillaBindings;
 using UnityEngine;
+using Vasi;
+
+using UObject = UnityEngine.Object;
 
 namespace ToggleableBindings
 {
@@ -39,13 +44,10 @@ namespace ToggleableBindings
         private void GameManager_Update(On.GameManager.orig_Update orig, GameManager self)
         {
             orig(self);
+
             if (Input.GetKeyDown(KeyCode.G))
             {
-                Log(self.profileID);
-                /*foreach (var (_, binding) in BindingManager.RegisteredBindings)
-                    Log(binding.Name + " - Applied: " + binding.IsApplied);
-                foreach (var evnt in EventRegister.eventRegister)
-                    Log(evnt.Key + ": " + string.Join(", ", evnt.Value.Select(e => e.gameObject.ListHierarchy()).ToArray()));*/
+                
             }
             if (Input.GetKeyDown(KeyCode.H))
             {

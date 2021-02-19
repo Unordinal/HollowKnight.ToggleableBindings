@@ -98,7 +98,7 @@ namespace ToggleableBindings
         private static void CleanUpForQuit()
         {
             /*
-             * There's probably a cleaner/better way to do this, but I can't think of it right now.
+             * There's probably a better way to do this, but I can't think of it right now.
              *
              * We need to ensure that the bindings are restored before actual game data is saved
              * in case the mod is removed before the next load and one or more bindings affected
@@ -179,18 +179,18 @@ namespace ToggleableBindings
         }
 
         /// <summary>
-        /// Checks whether a binding with the specified name is registered.
+        /// Checks whether a binding with the specified ID is registered.
         /// </summary>
-        /// <param name="bindingName">The name of the binding to check for.</param>
-        /// <returns><see langword="true"/> if a binding with the specified name is registered; otherwise, <see langword="false"/>.</returns>
+        /// <param name="bindingID">The ID of the binding to check for.</param>
+        /// <returns><see langword="true"/> if a binding with the specified ID is registered; otherwise, <see langword="false"/>.</returns>
         /// <exception cref="ArgumentNullException"/>
-        public static bool IsBindingRegistered(string bindingName)
+        public static bool IsBindingRegistered(string bindingID)
         {
-            if (bindingName is null)
-                throw new ArgumentNullException(nameof(bindingName));
+            if (bindingID is null)
+                throw new ArgumentNullException(nameof(bindingID));
 
             lock (_lock)
-                return _bindingIDTypeMap.ContainsKey(bindingName);
+                return _bindingIDTypeMap.ContainsKey(bindingID);
         }
 
         /// <typeparam name="T"><inheritdoc cref="IsBindingRegistered(Type)" path="/param[1]"/></typeparam>

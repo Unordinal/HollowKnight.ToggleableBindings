@@ -2,9 +2,12 @@
 
 using System;
 using System.Runtime.Serialization;
+using GlobalEnums;
 using Newtonsoft.Json;
 using ToggleableBindings.Utility;
 using ToggleableBindings.VanillaBindings;
+using UnityEngine;
+using TB = ToggleableBindings.ToggleableBindings;
 
 namespace ToggleableBindings
 {
@@ -52,6 +55,16 @@ namespace ToggleableBindings
         /// Gets whether this binding is a base game binding.
         /// </summary>
         public bool IsVanillaBinding { get; }
+
+        /// <summary>
+        /// Gets the sprite used for the binding button's default state in the UI.
+        /// </summary>
+        public abstract Sprite DefaultSprite { get; }
+
+        /// <summary>
+        /// Gets the sprite used for the binding button's selected state in the UI.
+        /// </summary>
+        public abstract Sprite SelectedSprite { get; }
 
         /// <summary>
         /// Gets whether this binding was applied when a save was saved. Can be used to adjust

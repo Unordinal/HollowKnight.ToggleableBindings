@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using MonoMod.RuntimeDetour;
+using ToggleableBindings.Utility;
 using UnityEngine;
 
 namespace ToggleableBindings.VanillaBindings
@@ -17,6 +18,13 @@ namespace ToggleableBindings.VanillaBindings
         private const string MPLoseEvent = "MP LOSE";
         private const string MPReserveDownEvent = "MP RESERVE DOWN";
         private readonly List<IDetour> _detours;
+
+        private Sprite? _defaultSprite;
+        private Sprite? _selectedSprite;
+
+        public override Sprite DefaultSprite => _defaultSprite ??= Prefabs.VanillaSoulButton.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
+
+        public override Sprite SelectedSprite => _selectedSprite ??= Prefabs.VanillaSoulButton.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
 
         public SoulBinding() : base(nameof(SoulBinding))
         {

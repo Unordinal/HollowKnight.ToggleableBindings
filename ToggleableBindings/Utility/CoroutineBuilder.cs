@@ -7,7 +7,7 @@ using System.Linq;
 using ToggleableBindings.Extensions;
 using UnityEngine;
 
-namespace ToggleableBindings
+namespace ToggleableBindings.Utility
 {
     public readonly struct CoroutineBuilder
     {
@@ -29,7 +29,7 @@ namespace ToggleableBindings
         public CoroutineBuilder WithYield(params object?[]? toYield)
         {
             var instrs = Instructions;
-            instrs = (toYield is not null)
+            instrs = toYield is not null
                 ? instrs.Concat(toYield.Select(o => new Instruction(o)))
                 : instrs.Concat(Instruction.YieldNull);
 

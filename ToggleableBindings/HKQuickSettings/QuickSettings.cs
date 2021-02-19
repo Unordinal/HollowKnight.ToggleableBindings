@@ -12,6 +12,7 @@ using Modding.Patches;
 using Newtonsoft.Json;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.JsonNet;
+using ToggleableBindings.Utility;
 using UnityEngine;
 
 namespace ToggleableBindings.HKQuickSettings

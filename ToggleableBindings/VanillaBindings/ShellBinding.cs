@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using MonoMod.RuntimeDetour;
 using ToggleableBindings.HKQuickSettings;
+using ToggleableBindings.Utility;
 using UnityEngine;
 
 namespace ToggleableBindings.VanillaBindings
@@ -19,6 +20,13 @@ namespace ToggleableBindings.VanillaBindings
         private const string UpdateBlueHealthEvent = "UPDATE BLUE HEALTH";
         private const string CharmIndicatorCheckEvent = "CHARM INDICATOR CHECK";
         private readonly List<IDetour> _detours;
+
+        private Sprite? _defaultSprite;
+        private Sprite? _selectedSprite;
+
+        public override Sprite DefaultSprite => _defaultSprite ??= Prefabs.VanillaShellButton.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
+
+        public override Sprite SelectedSprite => _selectedSprite ??= Prefabs.VanillaShellButton.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
 
         public ShellBinding() : base(nameof(ShellBinding))
         {
@@ -53,7 +61,7 @@ namespace ToggleableBindings.VanillaBindings
             yield return new WaitWhile(() => HeroController.instance is null);
             yield return null;
 
-            PlayerData.instance.MaxHealth();
+            PlayerData.instance?.MaxHealth();
 
             PlayMakerFSM.BroadcastEvent(CharmIndicatorCheckEvent);
             EventRegister.SendEvent(UpdateBlueHealthEvent);

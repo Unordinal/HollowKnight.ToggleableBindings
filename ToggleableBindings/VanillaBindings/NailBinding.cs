@@ -1,10 +1,13 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using ToggleableBindings.HKQuickSettings;
+using ToggleableBindings.Utility;
 using UnityEngine;
 
 namespace ToggleableBindings.VanillaBindings
@@ -18,6 +21,13 @@ namespace ToggleableBindings.VanillaBindings
         private const string ShowBoundNailEvent = "SHOW BOUND NAIL";
         private const string HideBoundNailEvent = "HIDE BOUND NAIL";
         private readonly List<IDetour> _detours;
+
+        private Sprite? _defaultSprite;
+        private Sprite? _selectedSprite;
+
+        public override Sprite DefaultSprite => _defaultSprite ??= Prefabs.VanillaNailButton.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
+
+        public override Sprite SelectedSprite => _selectedSprite ??= Prefabs.VanillaNailButton.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
 
         public NailBinding() : base(nameof(NailBinding))
         {

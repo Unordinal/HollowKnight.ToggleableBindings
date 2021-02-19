@@ -54,8 +54,29 @@
       <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+      <Aliases>global</Aliases>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.UIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Vasi">
@@ -80,8 +101,16 @@
     <Compile Include="Collections\ReadOnlyDictionary.cs" />
     <Compile Include="Collections\ReadOnlyList.cs" />
     <Compile Include="Collections\NonNullArray.cs" />
-    <Compile Include="CoroutineBuilder.cs" />
-    <Compile Include="CoroutineController.cs" />
+    <Compile Include="Extensions\ComponentExtensions.cs" />
+    <Compile Include="Prefab.cs" />
+    <Compile Include="Utility\InstanceFlags.cs" />
+    <Compile Include="Utility\ObjectFactory.cs" />
+    <Compile Include="Prefabs.cs" />
+    <Compile Include="UI\BindingsUI.cs" />
+    <Compile Include="UI\BindingsUIBindingButton.cs" />
+    <Compile Include="UI\BindingsUIController.cs" />
+    <Compile Include="Utility\CoroutineBuilder.cs" />
+    <Compile Include="Utility\CoroutineController.cs" />
     <Compile Include="Exceptions\TypeArgumentAbstractException.cs" />
     <Compile Include="Exceptions\TypeArgumentException.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />

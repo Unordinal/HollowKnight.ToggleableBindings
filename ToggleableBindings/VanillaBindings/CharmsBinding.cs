@@ -11,6 +11,7 @@ using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using Newtonsoft.Json;
 using ToggleableBindings.HKQuickSettings;
+using ToggleableBindings.Utility;
 using UnityEngine;
 using Vasi;
 
@@ -50,6 +51,13 @@ namespace ToggleableBindings.VanillaBindings
         private List<int> _previousEquippedCharms = new();
 
         private bool _wasOvercharmed;
+
+        private Sprite? _defaultSprite;
+        private Sprite? _selectedSprite;
+
+        public override Sprite DefaultSprite => _defaultSprite ??= Prefabs.VanillaCharmsButton.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
+
+        public override Sprite SelectedSprite => _selectedSprite ??= Prefabs.VanillaCharmsButton.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
 
         public CharmsBinding() : base(nameof(CharmsBinding))
         {

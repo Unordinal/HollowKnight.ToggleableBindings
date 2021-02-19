@@ -1,15 +1,11 @@
 ﻿#nullable enable
 
-using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using GlobalEnums;
 using Modding;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.HKQuickSettings;
-using ToggleableBindings.VanillaBindings;
+using ToggleableBindings.UI;
 using UnityEngine;
 using Vasi;
 
@@ -23,6 +19,14 @@ namespace ToggleableBindings
         [NotNull, DisallowNull]
         public QuickSettings? Settings { get; private set; }
 
+        public override List<(string, string)> GetPreloadNames()
+        {
+            return new()
+            {
+                ("GG_Atrium", "GG_Challenge_Door")
+            };
+        }
+
         public ToggleableBindings() : base()
         {
             if (Instance is not null)
@@ -31,11 +35,23 @@ namespace ToggleableBindings
             Instance = this;
         }
 
-        public override void Initialize()
+        public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
         {
+            Prefabs.Initialize(preloadedObjects);
+
             AddHooks();
             Settings = new();
             BindingManager.Initialize();
+            BindingsUIController.Initialize();
+            var stuff = Resources.LoadAll<AudioSource>(string.Empty);
+            foreach (var obj in stuff)
+                Log(obj.name);
+
+            //On.BossDoorChallengeUIBindingButton.OnPointerClick += (orig, self, eventData) => { };
+
+            /*var test = Object.Instantiate(Prefabs.BindingsUI);
+            Object.DontDestroyOnLoad(test);
+            test.name = nameof(UI.BindingsUI);*/
         }
 
         public void Unload()

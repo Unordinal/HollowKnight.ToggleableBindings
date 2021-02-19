@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
-namespace ToggleableBindings
+namespace ToggleableBindings.Utility
 {
     public class CoroutineController : MonoBehaviour
     {

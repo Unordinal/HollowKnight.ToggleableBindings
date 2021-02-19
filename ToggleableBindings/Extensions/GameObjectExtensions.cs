@@ -17,6 +17,17 @@ namespace ToggleableBindings.Extensions
             return gameObject?.transform?.parent?.gameObject;
         }
 
+        public static void SetParent(this GameObject gameObject, GameObject parent, bool worldPositionStays = true)
+        {
+            if (gameObject is null)
+                throw new ArgumentNullException(nameof(gameObject));
+
+            if (parent is null)
+                throw new ArgumentNullException(nameof(parent));
+
+            gameObject.transform.SetParent(parent.transform, worldPositionStays);
+        }
+
         public static IEnumerable<GameObject> GetChildren(this GameObject gameObject)
         {
             foreach (var child in gameObject.transform.GetComponentsInChildren<Transform>())
@@ -42,6 +53,14 @@ namespace ToggleableBindings.Extensions
                     return child;
 
             return null;
+        }
+
+        public static GameObject FindChildByPath(this GameObject gameObject, string childPath)
+        {
+            if (gameObject is null)
+                throw new ArgumentNullException(nameof(gameObject));
+
+            return gameObject.transform.Find(childPath).gameObject ?? throw new Exception("Couldn't find GameObject via path.");
         }
     }
 }
