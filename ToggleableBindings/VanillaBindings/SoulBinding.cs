@@ -22,11 +22,11 @@ namespace ToggleableBindings.VanillaBindings
         private Sprite? _defaultSprite;
         private Sprite? _selectedSprite;
 
-        public override Sprite DefaultSprite => _defaultSprite ??= Prefabs.VanillaSoulButton.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
+        public override Sprite DefaultSprite => _defaultSprite ??= BaseGamePrefabs.SoulButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
 
-        public override Sprite SelectedSprite => _selectedSprite ??= Prefabs.VanillaSoulButton.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
+        public override Sprite SelectedSprite => _selectedSprite ??= BaseGamePrefabs.SoulButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
 
-        public SoulBinding() : base(nameof(SoulBinding))
+        public SoulBinding() : base("Soul")
         {
             var boundSoulGetter = typeof(BossSequenceController).GetMethod("get_BoundSoul", BindingFlags.Public | BindingFlags.Static);
 

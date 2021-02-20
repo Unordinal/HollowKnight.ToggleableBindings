@@ -6,12 +6,12 @@ namespace ToggleableBindings.Extensions
 {
     public static class EnumerableExtensions
     {
-        public static IEnumerable<object> ToGeneric(this IEnumerable collection)
+        public static IEnumerable<object> AsGeneric(this IEnumerable collection)
         {
-            return collection.ToGeneric<object>();
+            return collection.AsGeneric<object>();
         }
 
-        public static IEnumerable<T> ToGeneric<T>(this IEnumerable collection)
+        public static IEnumerable<T> AsGeneric<T>(this IEnumerable collection)
         {
             foreach (T obj in collection)
                 yield return obj;

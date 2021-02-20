@@ -37,7 +37,7 @@ namespace ToggleableBindings
 
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
         {
-            Prefabs.Initialize(preloadedObjects);
+            BaseGamePrefabs.Initialize(preloadedObjects);
 
             AddHooks();
             Settings = new();

@@ -1,4 +1,12 @@
-﻿using System.Reflection;
+﻿#nullable enable
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Reflection;
+using GlobalEnums;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.Utility;
 using UnityEngine;
@@ -7,11 +15,10 @@ namespace ToggleableBindings.UI
 {
     internal class BindingsUIController : MonoBehaviour
     {
-        public static BindingsUIController Instance { get; private set; }
+        [NotNull] public static BindingsUIController? Instance { get; private set; }
 
-        private tk2dSpriteAnimator _spriteAnimator;
-        private BindingsUI _bindingsUI;
-        private FieldInfo _hciFieldInfo;
+        private BindingsUI _bindingsUI = null!;
+        private tk2dSpriteAnimator _spriteAnimator = null!;
 
         private tk2dSpriteAnimator SpriteAnimator => _spriteAnimator ??= HeroController.instance.GetComponent<tk2dSpriteAnimator>();
 
@@ -29,27 +36,32 @@ namespace ToggleableBindings.UI
 
         internal static void Initialize()
         {
-            GameObject container = new GameObject(nameof(ToggleableBindings) + "::" + nameof(BindingsUIController));
+            GameObject container = ObjectFactory.Create(nameof(BindingsUIController), InstanceFlags.DontDestroyOnLoad);
             container.AddComponent<BindingsUIController>();
-            DontDestroyOnLoad(container);
-            container.SetParent(Prefabs.DDOLHolderGO);
         }
 
         private void Awake()
         {
-            var bindingsUIGO = Prefabs.Instantiate(Prefabs.BindingsUI, Prefabs.InstanceFlags.DontDestroyOnLoad);
-            bindingsUIGO.name = nameof(ToggleableBindings) + "::" + nameof(BindingsUI);
+            var bindingsUIGO = ObjectFactory.Instantiate(BindingsUI.Prefab, InstanceFlags.DontDestroyOnLoad);
+            bindingsUIGO.name = nameof(BindingsUI);
 
             _bindingsUI = bindingsUIGO.GetComponent<BindingsUI>();
-            _bindingsUI.Hidden += Hide;
             _bindingsUI.Hide();
+            _bindingsUI.Applied += Applied;
+            _bindingsUI.Hidden += Hide;
+        }
+
+        private void Applied(IEnumerable<Binding> selectedBindings)
+        {
+            BindingManager.SetActiveBindings(selectedBindings);
         }
 
         private void Update()
         {
-            // Because the 'instance' property spams errors due to its 'get' accessor.
-            _hciFieldInfo ??= typeof(HeroController).GetField("_instance", BindingFlags.NonPublic | BindingFlags.Static);
-            var hci = _hciFieldInfo.GetValue(null);
+            if (GameManager.instance.gameState is not GameState.PLAYING and not GameState.PAUSED)
+                return;
+
+            var hci = HeroController.instance;
             if (hci is null)
                 return;
 
@@ -66,21 +78,31 @@ namespace ToggleableBindings.UI
 
         private void Show()
         {
-            PlayerData.instance.SetBool("disablePause", true);
-            HeroController.instance.RelinquishControl();
-            HeroController.instance.StopAnimationControl();
-            SpriteAnimator.Play("LookUp");
+            PlayerData.instance?.SetBool("disablePause", true);
+            if (HeroController.instance is not null)
+            {
+                HeroController.instance.RelinquishControl();
+                HeroController.instance.StopAnimationControl();
+                SpriteAnimator.Play("Map Open");
+                SpriteAnimator.AnimationCompleted = (_, _) => SpriteAnimator.Play("Map Idle");
+            }
 
             _bindingsUI.Show();
         }
 
         private void Hide()
         {
-            PlayerData.instance.SetBool("disablePause", false);
-            HeroController.instance.RegainControl();
-            HeroController.instance.StartAnimationControl();
-            HeroController.instance.PreventCastByDialogueEnd();
-            SpriteAnimator.Play();
+            if (HeroController.instance is not null)
+            {
+                SpriteAnimator.Play("Map Away");
+                SpriteAnimator.AnimationCompleted = (_, _) =>
+                {
+                    PlayerData.instance?.SetBool("disablePause", false);
+                    HeroController.instance.RegainControl();
+                    HeroController.instance.StartAnimationControl();
+                    HeroController.instance.PreventCastByDialogueEnd();
+                };
+            }
         }
     }
 }

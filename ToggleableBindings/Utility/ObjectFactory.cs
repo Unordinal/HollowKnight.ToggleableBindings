@@ -31,6 +31,7 @@ namespace ToggleableBindings.Utility
             var output = new GameObject(name);
             FollowInstanceFlags(output, null, instanceFlags);
 
+            ToggleableBindings.Instance.Log("Created new object: " + output.name);
             return output;
         }
 
@@ -47,7 +48,25 @@ namespace ToggleableBindings.Utility
             var clone = Object.Instantiate(original);
             FollowInstanceFlags(clone, parent, instanceFlags);
 
+            ToggleableBindings.Instance.Log("Instantiated game object as new object: " + clone.name);
             return clone;
+        }
+
+        public static GameObject Instantiate(FakePrefab prefab, InstanceFlags instanceFlags = InstanceFlags.Default)
+        {
+            return Instantiate(prefab, null, instanceFlags);
+        }
+        
+        public static GameObject Instantiate(FakePrefab prefab, GameObject? parent, InstanceFlags instanceFlags = InstanceFlags.Default)
+        {
+            if (prefab is null)
+                throw new System.ArgumentNullException(nameof(prefab));
+
+            var instance = prefab.Instantiate();
+            FollowInstanceFlags(instance, parent, instanceFlags);
+
+            ToggleableBindings.Instance.Log("Instantiated prefab as new object: " + instance.name);
+            return instance;
         }
 
         private static void FollowInstanceFlags(GameObject gameObject, GameObject? parent, InstanceFlags instanceFlags)

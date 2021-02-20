@@ -4,37 +4,51 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Modding;
 using ToggleableBindings.Extensions;
+using ToggleableBindings.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace ToggleableBindings.UI
 {
-    public class BindingsUI : MonoBehaviour
+    public class BindingsUI : MonoBehaviour, ICancelHandler
     {
-        public event Action<IEnumerable<string>>? Submitted;
+        public static FakePrefab Prefab { get; }
+
+        public event Action<IEnumerable<Binding>>? Applied;
+        public event Action? BeforeHidden;
         public event Action? Hidden;
 
         private Animator _animator = null!;
         private Canvas _canvas = null!;
         private CanvasGroup _group = null!;
+        private GameObject _beginButton = null!;
         private GameObject _buttonsGroup = null!;
-        private AudioSource _audioSource = null!; 
+        private MenuButtonList _buttonsList = null!;
+
         private readonly List<(GameObject GO, BindingsUIBindingButton Button)> _buttons = new();
 
-        internal static GameObject GetPrefab()
+        static BindingsUI()
         {
-            var prefab = Prefabs.Instantiate(Prefabs.VanillaChallengeUI, Prefabs.InstanceFlags.StartInactive);
-            prefab.name = nameof(BindingsUI);
-            var bindingsUI = prefab.AddComponent<BindingsUI>();
-            Destroy(prefab.GetComponent<BossDoorChallengeUI>());
+            var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.ChallengeDoorCanvas, InstanceFlags.StartInactive);
+            tempInstance.RemoveComponent<BossDoorChallengeUI>();
+            var bindingsUI = tempInstance.AddComponent<BindingsUI>();
 
-            var panelGO = prefab.FindChildByPath("Panel");
-            var superTextGO = panelGO.FindChildByPath("Title_Super_Text");
-            var mainTextGO = panelGO.FindChildByPath("Title_Main_Text");
-            var descriptionTextGO = panelGO.FindChildByPath("Description_Text");
+            var panelGO = tempInstance.FindChild("Panel");
+            panelGO.AddComponent<MenuButtonList>();
+
+            var buttonsGO = panelGO.FindChild("Buttons");
+            var superTextGO = panelGO.FindChild("Title_Super_Text");
+            var mainTextGO = panelGO.FindChild("Title_Main_Text");
+            var descTextGO = panelGO.FindChild("Description_Text");
+            var beginButtonGO = panelGO.FindChild("BeginButton");
+            var beginTextGO = beginButtonGO.FindChild("Text");
+            beginTextGO.RemoveComponent<AutoLocalizeTextUI>();
+
+            // Destroy original buttons
+            foreach (Transform child in buttonsGO.transform.AsGeneric<Transform>().ToList())
+                DestroyImmediate(child.gameObject, true);
 
             var superText = superTextGO.GetComponent<Text>();
             superText.text = nameof(ToggleableBindings);
@@ -42,22 +56,15 @@ namespace ToggleableBindings.UI
             var mainText = mainTextGO.GetComponent<Text>();
             mainText.text = "Bindings Menu";
 
-            var descriptionText = descriptionTextGO.GetComponent<Text>();
-            descriptionText.text = "Apply and Restore Bindings";
-
-            var buttonsGroupGO = prefab.FindChildByPath("Panel/Buttons");
-            buttonsGroupGO.transform.DetachChildren();
-
-            var beginGO = panelGO.FindChildByPath("BeginButton");
-            var beginTextGO = beginGO.FindChildByPath("Text");
-            Destroy(beginTextGO.GetComponent<AutoLocalizeTextUI>());
+            var descText = descTextGO.GetComponent<Text>();
+            descText.text = "Apply and Restore Bindings";
 
             var beginText = beginTextGO.GetComponent<Text>();
             beginText.text = "APPLY";
 
-            bindingsUI._audioSource = beginGO.GetComponent<AudioSource>();
+            Prefab = new FakePrefab(tempInstance, nameof(BindingsUI));
 
-            return prefab;
+            DestroyImmediate(tempInstance, true);
         }
 
         private void Awake()
@@ -65,13 +72,29 @@ namespace ToggleableBindings.UI
             _animator = GetComponent<Animator>();
             _canvas = GetComponent<Canvas>();
             _group = GetComponent<CanvasGroup>();
-            _buttonsGroup = gameObject.FindChildByPath("Panel/Buttons");
-        }
 
-        private void OnEnable()
-        {
-            foreach (var (_, button) in _buttons)
-                button.Reset();
+            var panelGO = gameObject.FindChild("Panel");
+            _beginButton = panelGO.FindChild("BeginButton");
+            _buttonsGroup = panelGO.FindChild("Buttons");
+            _buttonsList = panelGO.GetComponent<MenuButtonList>();
+
+            var beginTrigger = _beginButton.GetComponent<EventTrigger>();
+            var submitEntry = new EventTrigger.Entry();
+            submitEntry.callback.AddListener((data) => Apply());
+            submitEntry.eventID = EventTriggerType.Submit;
+
+            var cancelEntry = new EventTrigger.Entry();
+            cancelEntry.callback.AddListener((data) => Hide());
+            cancelEntry.eventID = EventTriggerType.Cancel;
+
+            var pointerClickEntry = new EventTrigger.Entry();
+            pointerClickEntry.callback.AddListener((data) => Apply());
+            pointerClickEntry.eventID = EventTriggerType.PointerClick;
+
+            beginTrigger.triggers.Clear();
+            beginTrigger.triggers.Add(submitEntry);
+            beginTrigger.triggers.Add(cancelEntry);
+            beginTrigger.triggers.Add(pointerClickEntry);
         }
 
         private void Start()
@@ -82,25 +105,36 @@ namespace ToggleableBindings.UI
 
         public void Setup(IEnumerable<Binding> bindings)
         {
-            foreach (var (go, _) in _buttons)
+            foreach (var (go, button) in _buttons)
+            {
+                button.Canceled -= Hide;
                 Destroy(go);
+            }
 
             _buttons.Clear();
+            _buttonsList.ClearSelectables();
             foreach (var binding in bindings)
             {
-                var bindingUIButtonGO = BindingsUIBindingButton.CreateInstance(binding.ID, binding.Name, binding.DefaultSprite, binding.SelectedSprite);
-                var bindingUIButton = bindingUIButtonGO.GetComponent<BindingsUIBindingButton>();
+                var bindingUIButtonGO = BindingsUIBindingButton.CreateInstance(binding);
+                bindingUIButtonGO.name = nameof(BindingsUI) + "::" + binding.Name + "Button";
                 bindingUIButtonGO.SetParent(_buttonsGroup, false);
 
+                var bindingUIButton = bindingUIButtonGO.GetComponent<BindingsUIBindingButton>();
+
                 bindingUIButton.Canceled += Hide;
-                bindingUIButtonGO.SetActive(true);
                 _buttons.Add((bindingUIButtonGO, bindingUIButton));
+
+                _buttonsList.AddSelectable(bindingUIButtonGO.GetComponent<Selectable>());
             }
+
+            _buttonsList.AddSelectable(_beginButton.GetComponent<Selectable>());
+            _buttonsList.RecalculateNavigation();
         }
 
         public void Apply()
         {
-            Submitted?.Invoke(_buttons.Select(b => b.Button.BindingID));
+            Applied?.Invoke(_buttons.Where(b => b.Button.Binding is not null && b.Button.IsSelected).Select(b => b.Button.Binding!));
+            Hide();
         }
 
         public void Show()
@@ -132,12 +166,13 @@ namespace ToggleableBindings.UI
 
         public void Hide()
         {
+            BeforeHidden?.Invoke();
             StartCoroutine(HideSequence(true));
         }
 
         private IEnumerator HideSequence(bool sendEvent)
         {
-            GameObject selected = EventSystem.current.currentSelectedGameObject;
+            GameObject? selected = EventSystem.current?.currentSelectedGameObject;
             if (selected is not null)
             {
                 MenuButton menuButton = selected.GetComponent<MenuButton>();
@@ -157,6 +192,11 @@ namespace ToggleableBindings.UI
 
             FSMUtility.SendEventToGameObject(GameCameras.instance.hudCanvas, "IN");
             gameObject.SetActive(false);
+        }
+
+        public void OnCancel(BaseEventData eventData)
+        {
+            Hide();
         }
     }
 }

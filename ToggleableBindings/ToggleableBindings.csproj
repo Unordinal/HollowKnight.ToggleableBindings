@@ -102,10 +102,10 @@
     <Compile Include="Collections\ReadOnlyList.cs" />
     <Compile Include="Collections\NonNullArray.cs" />
     <Compile Include="Extensions\ComponentExtensions.cs" />
-    <Compile Include="Prefab.cs" />
+    <Compile Include="FakePrefab.cs" />
     <Compile Include="Utility\InstanceFlags.cs" />
     <Compile Include="Utility\ObjectFactory.cs" />
-    <Compile Include="Prefabs.cs" />
+    <Compile Include="BaseGamePrefabs.cs" />
     <Compile Include="UI\BindingsUI.cs" />
     <Compile Include="UI\BindingsUIBindingButton.cs" />
     <Compile Include="UI\BindingsUIController.cs" />

@@ -6,13 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using ToggleableBindings.Collections;
-using ToggleableBindings.Collections.Concurrent;
 using ToggleableBindings.Exceptions;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.HKQuickSettings;
 using ToggleableBindings.Utility;
 using ToggleableBindings.VanillaBindings;
 using UnityEngine;
+using Vasi;
 using TB = ToggleableBindings.ToggleableBindings;
 
 namespace ToggleableBindings
@@ -130,12 +130,6 @@ namespace ToggleableBindings
                 RestoreAllBindings();
                 EnsureVanillaBindings();
             };
-        }
-
-        private static void RestoreAllBindings()
-        {
-            foreach (var binding in RegisteredBindings.Values)
-                binding.Restore();
         }
 
         #region IsBindingRegistered
@@ -526,10 +520,61 @@ namespace ToggleableBindings
             binding.Restore();
         }
 
+        /// <summary>
+        /// Restores all registered bindings.
+        /// </summary>
+        public static void RestoreAllBindings()
+        {
+            lock (_lock)
+            {
+                foreach (var binding in RegisteredBindings.Values)
+                    binding.Restore();
+            }
+        }
+
         private static void OnBindingRestored(Binding binding)
         {
             TB.Instance.LogDebug($"Restored binding '{binding.Name}'.");
             BindingRestored?.Invoke(binding);
+        }
+
+        #endregion
+
+        #region SetActiveBindings
+
+        /// <summary>
+        /// Applies and restores the registered bindings such that the specified list of bindings
+        /// are the only bindings that are applied.
+        /// </summary>
+        /// <param name="bindings">The bindings to ensure are applied.</param>
+        public static void SetActiveBindings(IEnumerable<Binding> bindings)
+        {
+            SetActiveBindings(bindings.Select(binding => binding.GetType()));
+        }
+
+        /// <summary>
+        /// Applies and restores the registered bindings such that the specified list of types
+        /// are the only bindings that are applied.
+        /// </summary>
+        /// <param name="bindingTypes">The types of bindings to ensure are applied.</param>
+        public static void SetActiveBindings(IEnumerable<Type> bindingTypes)
+        {
+            lock (_lock)
+            {
+                HashSet<Type> typesSet = new HashSet<Type>(bindingTypes);
+
+                foreach (var (type, binding) in RegisteredBindings)
+                {
+                    bool shouldToggle = typesSet.Contains(type) != binding.IsApplied;
+                    if (shouldToggle)
+                    {
+                        if (!binding.IsApplied)
+                            ApplyBinding(type);
+                        else
+                            RestoreBinding(type);
+                    }
+                }
+            }
         }
 
         #endregion

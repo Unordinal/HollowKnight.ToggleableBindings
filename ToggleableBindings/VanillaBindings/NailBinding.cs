@@ -25,11 +25,11 @@ namespace ToggleableBindings.VanillaBindings
         private Sprite? _defaultSprite;
         private Sprite? _selectedSprite;
 
-        public override Sprite DefaultSprite => _defaultSprite ??= Prefabs.VanillaNailButton.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
+        public override Sprite DefaultSprite => _defaultSprite ??= BaseGamePrefabs.NailButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
 
-        public override Sprite SelectedSprite => _selectedSprite ??= Prefabs.VanillaNailButton.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
+        public override Sprite SelectedSprite => _selectedSprite ??= BaseGamePrefabs.NailButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
 
-        public NailBinding() : base(nameof(NailBinding))
+        public NailBinding() : base("Nail")
         {
             var boundNailGetter = typeof(BossSequenceController).GetMethod($"get_BoundNail", BindingFlags.Public | BindingFlags.Static);
             var boundNailDamageGetter = typeof(BossSequenceController).GetMethod("get_BoundNailDamage", BindingFlags.Public | BindingFlags.Static);

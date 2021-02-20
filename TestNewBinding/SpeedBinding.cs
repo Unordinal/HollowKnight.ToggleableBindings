@@ -15,7 +15,7 @@ namespace TestNewBinding
 
         public override Sprite SelectedSprite => null!;
 
-        public SpeedBinding() : base(nameof(SpeedBinding))
+        public SpeedBinding() : base("Speed")
         {
         }
 
