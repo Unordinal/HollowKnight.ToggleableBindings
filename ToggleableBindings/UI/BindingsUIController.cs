@@ -24,7 +24,7 @@ namespace ToggleableBindings.UI
 
         public BindingsUIController()
         {
-            if (Instance is not null)
+            if (Instance != null)
             {
                 ToggleableBindings.Instance.LogError($"Tried to make a new '{nameof(BindingsUIController)}' when one already exists!");
                 Destroy(this);
@@ -62,10 +62,10 @@ namespace ToggleableBindings.UI
                 return;
 
             var hci = HeroController.instance;
-            if (hci is null)
+            if (!hci)
                 return;
 
-            if (HeroController.instance.CanTalk())
+            if (hci.CanTalk())
             {
                 var inputActions = GameManager.instance.inputHandler.inputActions;
                 if (inputActions.down.IsPressed && inputActions.superDash.IsPressed)
@@ -79,7 +79,7 @@ namespace ToggleableBindings.UI
         private void Show()
         {
             PlayerData.instance?.SetBool("disablePause", true);
-            if (HeroController.instance is not null)
+            if (HeroController.instance != null)
             {
                 HeroController.instance.RelinquishControl();
                 HeroController.instance.StopAnimationControl();
@@ -92,7 +92,7 @@ namespace ToggleableBindings.UI
 
         private void Hide()
         {
-            if (HeroController.instance is not null)
+            if (HeroController.instance != null)
             {
                 SpriteAnimator.Play("Map Away");
                 SpriteAnimator.AnimationCompleted = (_, _) =>

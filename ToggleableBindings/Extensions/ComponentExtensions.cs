@@ -12,7 +12,6 @@ namespace ToggleableBindings.Extensions
     public static class ComponentExtensions
     {
         private const BindingFlags AllInstance = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-        private const BindingFlags AllDeclaredOnly = AllInstance | BindingFlags.DeclaredOnly;
 
         // Somewhat worried about this messing with some internal component state that shouldn't be messed with.
         /// <summary>
@@ -29,10 +28,10 @@ namespace ToggleableBindings.Extensions
         /// <returns>This component with its values set to the values from the source component.</returns>
         public static T CopyFrom<T>(this T component, T source, bool replaceSelfGORefs = true, BindingFlags reflFlags = AllInstance) where T : Component
         {
-            if (component is null)
+            if (!component)
                 throw new ArgumentNullException(nameof(component));
 
-            if (source is null)
+            if (!source)
                 throw new ArgumentNullException(nameof(source));
 
             Type compType = typeof(T);

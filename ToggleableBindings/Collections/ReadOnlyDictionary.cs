@@ -23,7 +23,7 @@ namespace ToggleableBindings.Collections
         /// <param name="dictionary">The dictionary to wrap.</param>
         public ReadOnlyDictionary(IDictionary<TKey, TValue> dictionary)
         {
-            if (dictionary is null)
+            if (dictionary == null)
                 throw new ArgumentNullException(nameof(dictionary));
 
             _dictionary = dictionary;

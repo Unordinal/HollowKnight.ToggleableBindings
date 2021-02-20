@@ -11,7 +11,7 @@ namespace System.Runtime.CompilerServices
         /// </summary>
         public static T[] GetSubArray<T>(T[] array, Range range)
         {
-            if (array is null)
+            if (array == null)
                 throw new ArgumentNullException(nameof(array));
 
             (int offset, int length) = range.GetOffsetAndLength(array.Length);

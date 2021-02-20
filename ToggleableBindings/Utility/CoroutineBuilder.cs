@@ -29,7 +29,7 @@ namespace ToggleableBindings.Utility
         public CoroutineBuilder WithYield(params object?[]? toYield)
         {
             var instrs = Instructions;
-            instrs = toYield is not null
+            instrs = toYield != null
                 ? instrs.Concat(toYield.Select(o => new Instruction(o)))
                 : instrs.Concat(Instruction.YieldNull);
 
@@ -39,7 +39,7 @@ namespace ToggleableBindings.Utility
         public CoroutineBuilder WithAction(params Action?[]? actions)
         {
             var instrs = Instructions;
-            if (actions is not null)
+            if (actions != null)
                 instrs = instrs.Concat(actions.Select(a => new Instruction(a)));
             else
                 instrs = instrs.Concat(Instruction.YieldNull);
@@ -92,7 +92,7 @@ namespace ToggleableBindings.Utility
             /// Gets whether this should be a Yield instruction.
             /// </summary>
             /// <returns><see langword="true"/> if <see cref="Action"/> is <see langword="null"/>.</returns>
-            public bool IsYield => Action is null;
+            public bool IsYield => Action == null;
 
             public Instruction(Action? action) : this()
             {

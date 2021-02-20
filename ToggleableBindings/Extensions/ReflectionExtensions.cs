@@ -11,7 +11,7 @@ namespace ToggleableBindings.Extensions
     {
         public static T? GetCustomAttribute<T>(this MemberInfo element, bool inherit) where T : Attribute
         {
-            if (element is null)
+            if (element == null)
                 throw new ArgumentNullException(nameof(element));
 
             var attrs = element.GetCustomAttributes<T>(inherit).ToArray();
@@ -23,7 +23,7 @@ namespace ToggleableBindings.Extensions
 
         public static IEnumerable<T> GetCustomAttributes<T>(this MemberInfo element, bool inherit) where T : Attribute
         {
-            if (element is null)
+            if (element == null)
                 throw new ArgumentNullException(nameof(element));
 
             return element.GetCustomAttributes(typeof(T), inherit).Cast<T>();
@@ -31,14 +31,14 @@ namespace ToggleableBindings.Extensions
 
         public static object? GetMemberValue(this Type type, string memberName, object? backingObject)
         {
-            if (type is null)
+            if (type == null)
                 throw new ArgumentNullException(nameof(type));
 
-            if (memberName is null)
+            if (memberName == null)
                 throw new ArgumentNullException(nameof(memberName));
 
             var memberInfo = type.GetMember(memberName).FirstOrDefault();
-            if (memberInfo is null)
+            if (memberInfo == null)
                 throw new ArgumentException("The specified member does not exist on the given type.");
 
             return memberInfo.GetMemberValue(backingObject);
@@ -51,7 +51,7 @@ namespace ToggleableBindings.Extensions
 
         public static object? GetMemberValue(this MemberInfo member, object? backingObject)
         {
-            if (member is null)
+            if (member == null)
                 throw new ArgumentNullException(nameof(member));
 
             return member switch
@@ -79,7 +79,7 @@ namespace ToggleableBindings.Extensions
             if (targetType.IsNullable())
                 targetType = Nullable.GetUnderlyingType(targetType);
 
-            if (targetType.IsEnum && value is not null)
+            if (targetType.IsEnum && value != null)
                 value = Enum.ToObject(targetType, value);
             else
                 value = Convert.ChangeType(value, targetType);
@@ -115,7 +115,7 @@ namespace ToggleableBindings.Extensions
 
         public static bool IsAssignableTo(this Type type, Type other)
         {
-            if (other is null)
+            if (other == null)
                 throw new ArgumentNullException(nameof(other));
 
             return other.IsAssignableFrom(type);

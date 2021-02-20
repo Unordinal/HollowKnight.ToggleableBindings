@@ -58,7 +58,7 @@ namespace ToggleableBindings.VanillaBindings
 
         private IEnumerator OnToggledCoroutine()
         {
-            yield return new WaitWhile(() => HeroController.instance is null);
+            yield return new WaitWhile(() => !HeroController.instance);
             yield return null;
 
             PlayerData.instance?.MaxHealth();

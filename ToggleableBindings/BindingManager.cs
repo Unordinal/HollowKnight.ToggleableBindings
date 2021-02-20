@@ -150,7 +150,7 @@ namespace ToggleableBindings
         /// <exception cref="ArgumentNullException"/>
         public static bool IsBindingRegistered(Binding binding)
         {
-            if (binding is null)
+            if (binding == null)
                 throw new ArgumentNullException(nameof(binding));
 
             lock (_lock)
@@ -180,7 +180,7 @@ namespace ToggleableBindings
         /// <exception cref="ArgumentNullException"/>
         public static bool IsBindingRegistered(string bindingID)
         {
-            if (bindingID is null)
+            if (bindingID == null)
                 throw new ArgumentNullException(nameof(bindingID));
 
             lock (_lock)
@@ -211,7 +211,7 @@ namespace ToggleableBindings
         /// <exception cref="InvalidOperationException"/>
         public static void RegisterBinding(Binding binding)
         {
-            if (binding is null)
+            if (binding == null)
                 throw new ArgumentNullException(nameof(binding));
 
             Type bindingType = binding.GetType();
@@ -259,7 +259,7 @@ namespace ToggleableBindings
         /// <exception cref="InvalidOperationException"/>
         public static void DeregisterBinding(Binding binding)
         {
-            if (binding is null)
+            if (binding == null)
                 throw new ArgumentNullException(nameof(binding));
 
             Type bindingType = binding.GetType();
@@ -300,7 +300,7 @@ namespace ToggleableBindings
         /// <exception cref="InvalidOperationException"/>
         public static void DeregisterBinding(string bindingID)
         {
-            if (bindingID is null)
+            if (bindingID == null)
                 throw new ArgumentNullException(nameof(bindingID));
 
             if (!IsBindingRegistered(bindingID))
@@ -358,7 +358,7 @@ namespace ToggleableBindings
         /// <exception cref="InvalidOperationException"/>
         public static Binding GetBinding(string bindingID)
         {
-            if (bindingID is null)
+            if (bindingID == null)
                 throw new ArgumentNullException(nameof(bindingID));
 
             return IDIsRegisteredBinding(bindingID).GetValueOrThrow();
@@ -407,7 +407,7 @@ namespace ToggleableBindings
         {
             value = null;
 
-            if (bindingID is null)
+            if (bindingID == null)
                 return false;
 
             TryResult<Binding> registeredBinding = IDIsRegisteredBinding(bindingID);
@@ -608,7 +608,7 @@ namespace ToggleableBindings
         }
 
         /// <summary>
-        /// Checks that the passed type is not null,
+        /// Checks that the passed type != null,
         /// is not equal to 'typeof(<see cref="Binding"/>)',
         /// and inherits from <see cref="Binding"/>.
         /// </summary>
@@ -622,7 +622,7 @@ namespace ToggleableBindings
         /// <exception cref="ArgumentNullException"/>
         private static TryResult TypeIsValidBinding([NotNull] Type? type, string paramName)
         {
-            if (type is null)
+            if (type == null)
 #pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
                 return new ArgumentNullException(paramName);
 #pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
@@ -712,7 +712,7 @@ namespace ToggleableBindings
 
         private static IEnumerator RegisterDeserializedBindings()
         {
-            yield return new WaitWhile(() => HeroController.instance is null);
+            yield return new WaitWhile(() => !HeroController.instance);
 
             lock (_lock)
             {

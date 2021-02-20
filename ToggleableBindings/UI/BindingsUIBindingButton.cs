@@ -1,5 +1,4 @@
 ﻿#nullable enable
-#pragma warning disable IDE0051 // Remove unused private members
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -37,9 +36,9 @@ namespace ToggleableBindings.UI
         static BindingsUIBindingButton()
         {
             var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.NailButton, InstanceFlags.StartInactive);
+            tempInstance.RemoveComponent<BossDoorChallengeUIBindingButton>();
             var button = tempInstance.AddComponent<BindingsUIBindingButton>();
             tempInstance.AddComponent<AudioSource>();
-            tempInstance.RemoveComponent<BossDoorChallengeUIBindingButton>();
 
             var bindingTextGO = tempInstance.FindChild("Text");
             bindingTextGO.RemoveComponent<AutoLocalizeTextUI>();
@@ -54,7 +53,7 @@ namespace ToggleableBindings.UI
 
         public static GameObject CreateInstance(Binding binding)
         {
-            if (binding is null)
+            if (binding == null)
                 throw new ArgumentNullException(nameof(binding));
 
             var instance = ObjectFactory.Instantiate(Prefab);
@@ -85,7 +84,7 @@ namespace ToggleableBindings.UI
 
             _audioSource = GetComponent<AudioSource>();
 
-            if (_bindingImage is not null)
+            if (_bindingImage)
                 _bindingImage.sprite = _defaultSprite;
         }
 
@@ -105,14 +104,17 @@ namespace ToggleableBindings.UI
             float time = isInstant ? 1f : 0f;
             IsSelected = selected;
 
-            if (_bindingImage is not null)
+            if (_bindingImage != null)
             {
                 _bindingImage.sprite = IsSelected ? _selectedSprite : _defaultSprite;
                 _bindingImage.SetNativeSize();
             }
 
-            _iconAnimator?.Play("Select", -1, time);
-            _chainAnimator?.Play(IsSelected ? "Bind" : "Unbind", -1, time);
+            if (_iconAnimator)
+                _iconAnimator.Play("Select", -1, time);
+
+            if (_chainAnimator)
+                _chainAnimator.Play(IsSelected ? "Bind" : "Unbind", -1, time);
 
             if (!isInstant)
             {

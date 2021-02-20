@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using ToggleableBindings.Extensions;
 using UnityEngine;
 
@@ -52,13 +53,13 @@ namespace ToggleableBindings
         /// <param name="deactivateBeforeClone">
         /// If <see langword="true"/>, temporarily deactivates the object before creating the prefab's internal instance
         /// and then reactivates it when finished.
-        /// <para>
+        /// <br>
         /// Note that this may result in the original object's OnEnable() and OnDisable() methods being called.
-        /// </para>
+        /// </br>
         /// </param>
         public FakePrefab(GameObject original, string? prefabName = null, bool deactivateBeforeClone = false)
         {
-            if (original is null)
+            if (original)
                 throw new System.ArgumentNullException(nameof(original));
 
             _prefabName = NamePrefix + (prefabName ?? original.name);
@@ -72,7 +73,10 @@ namespace ToggleableBindings
             _prefab.SetParent(_prefabContainer);
 
             if (_wasActive && deactivateBeforeClone)
+            {
+                _prefab.SetActive(true);
                 original.SetActive(true);
+            }
         }
 
         /// <summary>
@@ -91,5 +95,7 @@ namespace ToggleableBindings
 
             return output;
         }
+
+        public static implicit operator bool([NotNullWhen(true)] FakePrefab value) => value != null;
     }
 }

@@ -15,7 +15,7 @@ namespace ToggleableBindings.JsonNet
 
         public JsonSerializationBinder(SerializationBinder binder)
         {
-            if (binder is null)
+            if (binder == null)
                 throw new ArgumentNullException(nameof(binder));
 
             _binder = binder;

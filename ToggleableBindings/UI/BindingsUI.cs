@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace ToggleableBindings.UI
 {
-    public class BindingsUI : MonoBehaviour, ICancelHandler
+    public class BindingsUI : MonoBehaviour
     {
         public static FakePrefab Prefab { get; }
 
@@ -133,7 +133,7 @@ namespace ToggleableBindings.UI
 
         public void Apply()
         {
-            Applied?.Invoke(_buttons.Where(b => b.Button.Binding is not null && b.Button.IsSelected).Select(b => b.Button.Binding!));
+            Applied?.Invoke(_buttons.Where(b => b.Button.Binding != null && b.Button.IsSelected).Select(b => b.Button.Binding!));
             Hide();
         }
 
@@ -150,7 +150,7 @@ namespace ToggleableBindings.UI
             EventSystem.current.SetSelectedGameObject(null);
             yield return null;
 
-            if (_animator is not null)
+            if (_animator != null)
             {
                 _animator.Play("Open");
                 yield return null;
@@ -173,14 +173,14 @@ namespace ToggleableBindings.UI
         private IEnumerator HideSequence(bool sendEvent)
         {
             GameObject? selected = EventSystem.current?.currentSelectedGameObject;
-            if (selected is not null)
+            if (selected != null)
             {
                 MenuButton menuButton = selected.GetComponent<MenuButton>();
-                if (menuButton is not null)
+                if (menuButton != null)
                     menuButton.ForceDeselect();
             }
 
-            if (_animator is not null)
+            if (_animator != null)
             {
                 _animator.Play("Close");
                 yield return null;
@@ -192,11 +192,6 @@ namespace ToggleableBindings.UI
 
             FSMUtility.SendEventToGameObject(GameCameras.instance.hudCanvas, "IN");
             gameObject.SetActive(false);
-        }
-
-        public void OnCancel(BaseEventData eventData)
-        {
-            Hide();
         }
     }
 }

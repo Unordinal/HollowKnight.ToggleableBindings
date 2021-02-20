@@ -19,10 +19,10 @@ namespace ToggleableBindings.Extensions
 
         public static void SetParent(this GameObject gameObject, GameObject parent, bool worldPositionStays = true)
         {
-            if (gameObject is null)
+            if (!gameObject)
                 throw new ArgumentNullException(nameof(gameObject));
 
-            if (parent is null)
+            if (!parent)
                 throw new ArgumentNullException(nameof(parent));
 
             gameObject.transform.SetParent(parent.transform, worldPositionStays);
@@ -38,14 +38,14 @@ namespace ToggleableBindings.Extensions
         {
             string hierarchy = gameObject.name;
             var parent = gameObject.GetParent();
-            if (parent is not null)
+            if (parent != null)
                 hierarchy += "->" + parent.ListHierarchy();
             return hierarchy;
         }
 
         public static GameObject FindChild(this GameObject gameObject, string childPath)
         {
-            if (gameObject is null)
+            if (!gameObject)
                 throw new ArgumentNullException(nameof(gameObject));
 
             return gameObject.transform.Find(childPath).gameObject ?? throw new Exception("Couldn't find GameObject via path.");
@@ -58,14 +58,14 @@ namespace ToggleableBindings.Extensions
         /// <param name="componentType">The type of component.</param>
         public static void RemoveComponent(this GameObject go, Type componentType)
         {
-            if (go is null)
+            if (!go)
                 throw new ArgumentNullException(nameof(go));
 
             if (!componentType.IsAssignableTo(typeof(Component)))
                 throw new ArgumentException("The type was not a valid component type.", nameof(componentType));
 
             var component = go.GetComponent(componentType);
-            if (component is not null)
+            if (component)
                 UnityEngine.Object.DestroyImmediate(component, true);
         }
 
@@ -83,7 +83,7 @@ namespace ToggleableBindings.Extensions
         /// <returns><see langword="true"/> if this object is a Unity prefab; otherwise, <see langword="false"/>.</returns>
         public static bool IsPrefab(this GameObject go)
         {
-            if (go is null)
+            if (!go)
                 throw new ArgumentNullException(nameof(go));
 
             return go.gameObject.scene.rootCount == 0 && !go.activeInHierarchy;

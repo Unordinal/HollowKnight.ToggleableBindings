@@ -80,7 +80,7 @@ namespace ToggleableBindings
         /// <param name="name">The name of the binding.</param>
         public Binding(string name)
         {
-            if (name is null)
+            if (name == null)
                 throw new ArgumentNullException(nameof(name));
 
             Type bindingType = GetType();
@@ -115,7 +115,10 @@ namespace ToggleableBindings
         /// </returns>
         public virtual ResultInfo<bool> CanBeApplied()
         {
-            bool isNearBench = HeroController.instance?.cState?.nearBench ?? false;
+            bool isNearBench = false;
+            if (HeroController.instance && HeroController.instance.cState != null)
+                isNearBench = HeroController.instance.cState.nearBench;
+
             return new(isNearBench, string.Format(MustBeNearBench, "apply"));
         }
 
@@ -142,7 +145,10 @@ namespace ToggleableBindings
         /// </returns>
         public virtual ResultInfo<bool> CanBeRestored()
         {
-            bool isNearBench = HeroController.instance?.cState?.nearBench ?? false;
+            bool isNearBench = false;
+            if (HeroController.instance && HeroController.instance.cState != null)
+                isNearBench = HeroController.instance.cState.nearBench;
+
             return new(isNearBench, string.Format(MustBeNearBench, "restore"));
         }
 

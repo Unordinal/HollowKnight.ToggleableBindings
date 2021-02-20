@@ -72,7 +72,7 @@ namespace ToggleableBindings.VanillaBindings
 
         private IEnumerator OnAppliedCoroutine()
         {
-            yield return new WaitWhile(() => HeroController.instance is null);
+            yield return new WaitWhile(() => !HeroController.instance);
             yield return new WaitWhile(() => !EventRegister.eventRegister.ContainsKey(ShowBoundNailEvent));
 
             EventRegister.SendEvent(ShowBoundNailEvent);

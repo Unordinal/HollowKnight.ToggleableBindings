@@ -20,7 +20,7 @@ namespace ToggleableBindings.Utility
         /// Indicates whether the operation was successful.
         /// </summary>
         [MemberNotNullWhen(false, nameof(Exception))]
-        public bool IsSuccess => Exception is null;
+        public bool IsSuccess => Exception == null;
 
         /// <summary>
         /// If the operation was unsuccessful, contains an <see cref="System.Exception"/> that would have been thrown.

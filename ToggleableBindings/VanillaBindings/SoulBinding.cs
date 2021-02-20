@@ -56,7 +56,7 @@ namespace ToggleableBindings.VanillaBindings
 
         private IEnumerator OnAppliedCoroutine()
         {
-            yield return new WaitWhile(() => HeroController.instance is null);
+            yield return new WaitWhile(() => !HeroController.instance);
             yield return null;
 
             int mpLeft = Math.Min(PlayerData.instance.MPCharge, 33);
@@ -64,7 +64,7 @@ namespace ToggleableBindings.VanillaBindings
             PlayerData.instance.AddMPCharge(mpLeft);
 
             var gm = GameManager.instance;
-            yield return new WaitWhile(() => gm.soulOrb_fsm is null || gm.soulVessel_fsm is null);
+            yield return new WaitWhile(() => !gm.soulOrb_fsm || !gm.soulVessel_fsm);
             gm.soulOrb_fsm.SendEvent(MPLoseEvent);
             gm.soulVessel_fsm.SendEvent(MPReserveDownEvent);
 
@@ -73,11 +73,11 @@ namespace ToggleableBindings.VanillaBindings
 
         private IEnumerator OnRestoredCoroutine()
         {
-            yield return new WaitWhile(() => HeroController.instance is null);
+            yield return new WaitWhile(() => !HeroController.instance);
             yield return null;
 
             var gm = GameManager.instance;
-            yield return new WaitWhile(() => gm.soulOrb_fsm is null);
+            yield return new WaitWhile(() => !gm.soulOrb_fsm);
             gm.soulOrb_fsm.SendEvent(MPLoseEvent);
 
             EventRegister.SendEvent(UnbindVesselOrbEvent);

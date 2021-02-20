@@ -35,11 +35,11 @@ namespace ToggleableBindings
             GameObject soulButton = buttonsPanel.FindChild("SoulButton");
             GameObject charmsButton = buttonsPanel.FindChild("CharmsButton");
 
-            ChallengeDoorCanvas = new FakePrefab(challengeCanvasPrefab, "GG_Challenge_Door_Canvas");
-            NailButton = new FakePrefab(nailButton, "NailButton");
-            ShellButton = new FakePrefab(shellButton, "HeartButton");
-            SoulButton = new FakePrefab(soulButton, "SoulButton");
-            CharmsButton = new FakePrefab(charmsButton, "CharmsButton");
+            ChallengeDoorCanvas = new FakePrefab(challengeCanvasPrefab, "GG_Challenge_Door_Canvas", true);
+            NailButton = new FakePrefab(nailButton, "NailButton", true);
+            ShellButton = new FakePrefab(shellButton, "HeartButton", true);
+            SoulButton = new FakePrefab(soulButton, "SoulButton", true);
+            CharmsButton = new FakePrefab(charmsButton, "CharmsButton", true);
         }
     }
 }

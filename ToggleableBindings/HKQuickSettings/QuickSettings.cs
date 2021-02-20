@@ -142,7 +142,7 @@ namespace ToggleableBindings.HKQuickSettings
         [MemberNotNull(nameof(ModName), nameof(_owningAssembly))]
         protected void Initialize(string? modName)
         {
-            if (modName is null)
+            if (modName == null)
                 throw new ArgumentNullException(nameof(modName), $"Couldn't find the name of the mod to use. Try using '{nameof(QuickSettings)}(Type)'.");
 
             ModName = modName;
@@ -240,7 +240,7 @@ namespace ToggleableBindings.HKQuickSettings
                 foreach (var member in type.GetMembers(memberFlags))
                 {
                     var attr = member.GetCustomAttribute<QuickSettingAttribute>(false);
-                    if (attr is null)
+                    if (attr == null)
                         continue;
 
                     AddSetting(member, attr.SettingName, attr.IsPerSave);
@@ -277,7 +277,7 @@ namespace ToggleableBindings.HKQuickSettings
         /// </returns>
         public string? GetSaveSettingsPath(int? saveSlotID = null)
         {
-            if (saveSlotID is null && CurrentSaveSlot is null)
+            if (saveSlotID == null && CurrentSaveSlot == null)
                 return null;
 
             return SettingsDirectory + string.Format(SettingsSaveFileName, saveSlotID ?? CurrentSaveSlot);
@@ -289,7 +289,7 @@ namespace ToggleableBindings.HKQuickSettings
         public void SaveAllSettings()
         {
             SaveGlobalSettings();
-            if (CurrentSaveSlot is not null)
+            if (CurrentSaveSlot != null)
                 SaveSaveSettings();
         }
 
@@ -376,7 +376,7 @@ namespace ToggleableBindings.HKQuickSettings
         /// <exception cref="InvalidOperationException"/>
         public void SaveSaveSettings()
         {
-            if (CurrentSaveSlot is null)
+            if (CurrentSaveSlot == null)
                 throw new InvalidOperationException("Can't save save-specific settings when a save isn't loaded.");
 
             LogDebug($"Saving settings for save slot {CurrentSaveSlot}...");
@@ -413,7 +413,7 @@ namespace ToggleableBindings.HKQuickSettings
 
         private void LoadSaveSettings()
         {
-            if (CurrentSaveSlot is null)
+            if (CurrentSaveSlot == null)
                 throw new InvalidOperationException("Can't load save-specific settings when a save isn't loaded.");
 
             LogDebug($"Loading settings for save slot {CurrentSaveSlot}...");
@@ -470,7 +470,7 @@ namespace ToggleableBindings.HKQuickSettings
 
             static IEnumerable<Exception> InnerExceptionsAndSelf(Exception ex)
             {
-                while (ex is not null)
+                while (ex != null)
                 {
                     yield return ex;
                     ex = ex.InnerException;
@@ -513,7 +513,7 @@ namespace ToggleableBindings.HKQuickSettings
             CurrentSaveSlot = saveSlot;
 
             CoroutineBuilder.New
-                .WithYield(new WaitWhile(() => HeroController.instance is null), null)
+                .WithYield(new WaitWhile(() => !HeroController.instance), null)
                 .WithAction(LoadSaveSettings)
                 .Start();
         }
@@ -534,7 +534,7 @@ namespace ToggleableBindings.HKQuickSettings
                 var declaringType = setting.MemberInfo.DeclaringType;
 
                 var onSerializing = declaringType.GetMethod("OnSerializing", methodFlags);
-                if (onSerializing is not null)
+                if (onSerializing != null)
                     onSerializing?.Invoke(null, null);
 
                 var settingData = new QuickSettingData
@@ -545,7 +545,7 @@ namespace ToggleableBindings.HKQuickSettings
                 settingsData.Add(settingData);
 
                 var onSerialized = declaringType.GetMethod("OnSerialized", methodFlags);
-                if (onSerialized is not null)
+                if (onSerialized != null)
                     onSerialized?.Invoke(null, null);
             }
 
@@ -558,8 +558,8 @@ namespace ToggleableBindings.HKQuickSettings
             string serialized = File.ReadAllText(filePath);
             var settingsData = JsonConvert.DeserializeObject<List<QuickSettingData>>(serialized, _serializerSettings);
 
-            var settingsDict = settingsData?.Where(d => d.SettingName is not null).ToDictionary(d => d.SettingName, d => d.SettingValue);
-            if (settingsDict is not null)
+            var settingsDict = settingsData?.Where(d => d.SettingName != null).ToDictionary(d => d.SettingName, d => d.SettingValue);
+            if (settingsDict != null)
             {
                 foreach (var setting in settings)
                 {
@@ -569,13 +569,13 @@ namespace ToggleableBindings.HKQuickSettings
                         var declaringType = setting.MemberInfo.DeclaringType;
 
                         var onDeserializing = declaringType.GetMethod("OnDeserializing", methodFlags);
-                        if (onDeserializing is not null)
+                        if (onDeserializing != null)
                             onDeserializing?.Invoke(null, null);
 
                         setting.MemberInfo.SetMemberValue(null, value);
 
                         var onDeserialized = declaringType.GetMethod("OnDeserialized", methodFlags);
-                        if (onDeserialized is not null)
+                        if (onDeserialized != null)
                             onDeserialized?.Invoke(null, null);
                     }
                 }
@@ -585,7 +585,7 @@ namespace ToggleableBindings.HKQuickSettings
         private void Log(object? message = null, LogLevel logLevel = LogLevel.Info)
         {
             string prefix = nameof(QuickSettings);
-            if (_modName is not null)
+            if (_modName != null)
                 prefix += $" ({_modName})";
 
             string full = $"[{prefix}] - {message}";

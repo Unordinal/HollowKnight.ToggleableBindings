@@ -23,7 +23,7 @@ namespace ToggleableBindings.Utility
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
-            if (Instance is null)
+            if (!Instance)
             {
                 Instance = new GameObject($"#{nameof(ToggleableBindings)}-{nameof(CoroutineController)}").AddComponent<CoroutineController>();
                 DontDestroyOnLoad(Instance);

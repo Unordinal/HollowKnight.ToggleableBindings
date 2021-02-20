@@ -29,7 +29,7 @@ namespace ToggleableBindings
 
         public ToggleableBindings() : base()
         {
-            if (Instance is not null)
+            if (Instance != null)
                 return;
 
             Instance = this;
@@ -43,9 +43,6 @@ namespace ToggleableBindings
             Settings = new();
             BindingManager.Initialize();
             BindingsUIController.Initialize();
-            var stuff = Resources.LoadAll<AudioSource>(string.Empty);
-            foreach (var obj in stuff)
-                Log(obj.name);
 
             //On.BossDoorChallengeUIBindingButton.OnPointerClick += (orig, self, eventData) => { };
 
@@ -57,7 +54,7 @@ namespace ToggleableBindings
         public void Unload()
         {
             RemoveHooks();
-            if (Settings.CurrentSaveSlot is not null)
+            if (Settings.CurrentSaveSlot != null)
                 Settings.SaveSaveSettings();
 
             Settings.Unload();

@@ -18,7 +18,7 @@ namespace ToggleableBindings.Collections
         /// <param name="collection">The collection to wrap.</param>
         public ReadOnlyCollection(ICollection<T> collection)
         {
-            if (collection is null)
+            if (collection == null)
                 throw new ArgumentNullException(nameof(collection));
 
             _collection = collection;

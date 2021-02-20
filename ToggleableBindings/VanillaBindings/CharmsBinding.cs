@@ -68,7 +68,7 @@ namespace ToggleableBindings.VanillaBindings
             };
 
             CoroutineBuilder.New
-                .WithYield(new WaitWhile(() => CharmsMenuFsm is null))
+                .WithYield(new WaitWhile(() => !CharmsMenuFsm))
                 .WithAction(SetAllowedCharms)
                 .Start();
         }
@@ -95,7 +95,7 @@ namespace ToggleableBindings.VanillaBindings
 
         private IEnumerator OnAppliedCoroutine()
         {
-            yield return new WaitWhile(() => HeroController.instance is null);
+            yield return new WaitWhile(() => !HeroController.instance);
 
             var equippedCharms = PlayerData.instance.equippedCharms;
             if (!WasApplied)
@@ -150,7 +150,7 @@ namespace ToggleableBindings.VanillaBindings
 
         private void SetAllowedCharms()
         {
-            if (CharmsMenuFsm is not null)
+            if (CharmsMenuFsm)
             {
                 var deactivateUI = CharmsMenuFsm.GetState("Deactivate UI");
                 for (int i = 0; i < deactivateUI.Actions.Length; i++)
@@ -239,7 +239,7 @@ namespace ToggleableBindings.VanillaBindings
                     if (AllowEssentialCharms)
                     {
                         var charm = Fsm.GetFsmInt("Current Item Number");
-                        if (charm is not null && ExemptCharms.Contains(charm.Value))
+                        if (charm != null && ExemptCharms.Contains(charm.Value))
                             return DoEvent(TrueEvent);
                     }
                 }

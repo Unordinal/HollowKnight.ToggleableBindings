@@ -27,7 +27,7 @@ namespace ToggleableBindings.Collections
         /// <param name="list">The list to wrap.</param>
         public ReadOnlyList(IList<T> list)
         {
-            if (list is null)
+            if (list == null)
                 throw new ArgumentNullException(nameof(list));
 
             _list = list;
