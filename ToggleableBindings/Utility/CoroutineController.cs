@@ -1,4 +1,5 @@
 ﻿#nullable enable
+#pragma warning disable UNT0006 // Incorrect message signature
 
 using System;
 using System.Collections;

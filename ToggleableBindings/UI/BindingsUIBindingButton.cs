@@ -17,14 +17,15 @@ namespace ToggleableBindings.UI
         public event Action? Selected;
         public event Action? Canceled;
 
-        [NotNull] public Binding? Binding { get; private set; }
+        public Binding? Binding { get; private set; }
 
         public bool IsSelected { get; private set; }
 
-        private Image _bindingImage = null!;
+        private Text _title = null!;
 
-        private Sprite? _defaultSprite = null;
-        private Sprite? _selectedSprite = null;
+        private Image _bindingImage = null!;
+        private Sprite? _defaultSprite;
+        private Sprite? _selectedSprite;
 
         private Animator _iconAnimator = null!;
         private Animator _chainAnimator = null!;
@@ -37,7 +38,7 @@ namespace ToggleableBindings.UI
         {
             var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.NailButton, InstanceFlags.StartInactive);
             tempInstance.RemoveComponent<BossDoorChallengeUIBindingButton>();
-            var button = tempInstance.AddComponent<BindingsUIBindingButton>();
+            tempInstance.AddComponent<BindingsUIBindingButton>();
             tempInstance.AddComponent<AudioSource>();
 
             var bindingTextGO = tempInstance.FindChild("Text");
@@ -47,42 +48,21 @@ namespace ToggleableBindings.UI
             bindingText.text = "<Binding Name>";
 
             Prefab = new FakePrefab(tempInstance, nameof(BindingsUIBindingButton));
-
             DestroyImmediate(tempInstance, true);
-        }
-
-        public static GameObject CreateInstance(Binding binding)
-        {
-            if (binding == null)
-                throw new ArgumentNullException(nameof(binding));
-
-            var instance = ObjectFactory.Instantiate(Prefab);
-            var button = instance.GetComponent<BindingsUIBindingButton>();
-            var buttonTitle = instance.FindChild("Text").GetComponent<Text>();
-
-            button.Binding = binding;
-            button._defaultSprite = binding.DefaultSprite;
-            button._selectedSprite = binding.SelectedSprite;
-            buttonTitle.text = binding.Name;
-
-            var vanillaButtonPrefab = BaseGamePrefabs.NailButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>();
-            button._selectedSound = vanillaButtonPrefab.selectedSound;
-            button._deselectedSound = vanillaButtonPrefab.deselectedSound;
-
-            return instance;
         }
 
         private void Awake()
         {
-            ToggleableBindings.Instance.Log(nameof(BindingsUIBindingButton) + "::" + gameObject.name + " - Awake");
-            var imageGO = gameObject.FindChild("Image");
-            _bindingImage = imageGO.GetComponent<Image>();
-            _iconAnimator = imageGO.GetComponent<Animator>();
-
+            ToggleableBindings.Instance.Log(nameof(BindingsUIBindingButton) + "::" + gameObject.name + " - " + nameof(Awake));
             var chainAnimGO = gameObject.FindChild("Chain_Anim");
-            _chainAnimator = chainAnimGO.GetComponent<Animator>();
+            var imageGO = gameObject.FindChild("Image");
+            var textGO = gameObject.FindChild("Text");
 
             _audioSource = GetComponent<AudioSource>();
+            _bindingImage = imageGO.GetComponent<Image>();
+            _chainAnimator = chainAnimGO.GetComponent<Animator>();
+            _iconAnimator = imageGO.GetComponent<Animator>();
+            _title = textGO.GetComponent<Text>();
 
             if (_bindingImage)
                 _bindingImage.sprite = _defaultSprite;
@@ -90,45 +70,62 @@ namespace ToggleableBindings.UI
 
         private void Start()
         {
-            ToggleableBindings.Instance.Log(nameof(BindingsUIBindingButton) + "::" + gameObject.name + " - Start");
+            ToggleableBindings.Instance.Log(nameof(BindingsUIBindingButton) + "::" + gameObject.name + " - " + nameof(Start));
+            var vanillaButtonPrefab = BaseGamePrefabs.NailButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>();
 
             _audioSource.volume = GameManager.instance.GetImplicitCinematicVolume();
-            IsSelected = Binding.IsApplied;
-
-            SetState(IsSelected, true);
+            _selectedSound = vanillaButtonPrefab.selectedSound;
+            _deselectedSound = vanillaButtonPrefab.deselectedSound;
         }
 
-        public void SetState(bool selected, bool isInstant)
+        public void Setup(Binding binding)
         {
-            ToggleableBindings.Instance.Log(nameof(BindingsUIBindingButton) + "::" + gameObject.name + " - SetState");
-            float time = isInstant ? 1f : 0f;
-            IsSelected = selected;
+            Binding = binding ?? throw new ArgumentNullException(nameof(binding));
+            _defaultSprite = binding.DefaultSprite;
+            _selectedSprite = binding.SelectedSprite;
+            _title.text = binding.Name;
 
-            if (_bindingImage != null)
+            IsSelected = binding.IsApplied;
+            UpdateState(false);
+        }
+
+        private void UpdateState(bool playEffects)
+        {
+            ToggleableBindings.Instance.Log(nameof(BindingsUIBindingButton) + "::" + gameObject.name + " - " + nameof(UpdateState));
+            if (Binding == null)
+                throw new InvalidOperationException("Setup() was not called on this binding button!");
+
+            float startTime = playEffects ? 0f : 1f;
+            if (_bindingImage)
             {
                 _bindingImage.sprite = IsSelected ? _selectedSprite : _defaultSprite;
                 _bindingImage.SetNativeSize();
             }
 
-            if (_iconAnimator)
-                _iconAnimator.Play("Select", -1, time);
-
             if (_chainAnimator)
-                _chainAnimator.Play(IsSelected ? "Bind" : "Unbind", -1, time);
+                _chainAnimator.Play(IsSelected ? "Bind" : "Unbind", -1, startTime);
 
-            if (!isInstant)
+            if (_iconAnimator)
+                _iconAnimator.Play("Select", -1, startTime);
+
+            if (playEffects)
             {
-                AudioEvent toggleSound = IsSelected ? _selectedSound : _deselectedSound;
-                toggleSound.SpawnAndPlayOneShot(_audioSource, transform.position);
-
                 GameCameras.instance.cameraShakeFSM.SendEvent("EnemyKillShake");
+
+                if (_audioSource)
+                {
+                    AudioEvent selectSound = IsSelected ? _selectedSound : _deselectedSound;
+                    selectSound.SpawnAndPlayOneShot(_audioSource, transform.position);
+                }
             }
         }
 
         public void OnSubmit(BaseEventData eventData)
         {
-            ToggleableBindings.Instance.Log(nameof(BindingsUIBindingButton) + "::" + gameObject.name + " - Submit");
-            SetState(!IsSelected, false);
+            ToggleableBindings.Instance.Log(nameof(BindingsUIBindingButton) + "::" + gameObject.name + " - " + nameof(OnSubmit));
+            IsSelected = !IsSelected;
+
+            UpdateState(true);
             Selected?.Invoke();
         }
 

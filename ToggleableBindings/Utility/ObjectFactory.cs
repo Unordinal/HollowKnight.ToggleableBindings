@@ -10,26 +10,23 @@ namespace ToggleableBindings.Utility
         private static GameObject? _container;
         private static GameObject? _ddolContainer;
 
-        private static GameObject Container => _container ??= new GameObject($"{nameof(ToggleableBindings)}::{nameof(Container)}");
+        private static GameObject Container
+        {
+            get => _container != null 
+                ? _container 
+                : _container = CreateInternal($"{nameof(ToggleableBindings)}::{nameof(Container)}");
+        }
 
         private static GameObject DDOLContainer
         {
-            get
-            {
-                if (!_ddolContainer)
-                {
-                    _ddolContainer = new GameObject($"{nameof(ToggleableBindings)}::{nameof(DDOLContainer)}");
-                    Object.DontDestroyOnLoad(_ddolContainer);
-                }
-
-                return _ddolContainer!;
-            }
+            get => _ddolContainer != null 
+                ? _ddolContainer 
+                : _ddolContainer = CreateInternal($"{nameof(ToggleableBindings)}::{nameof(DDOLContainer)}", InstanceFlags.DontDestroyOnLoad);
         }
 
         public static GameObject Create(string? name, InstanceFlags instanceFlags = InstanceFlags.Default)
         {
-            var output = new GameObject(name);
-            ApplyInstanceFlags(output, null, instanceFlags);
+            var output = CreateInternal(name, instanceFlags);
 
             ToggleableBindings.Instance.Log("Created new object: " + output.name);
             return output;
@@ -56,7 +53,7 @@ namespace ToggleableBindings.Utility
         {
             return Instantiate(prefab, null, instanceFlags);
         }
-        
+
         public static GameObject Instantiate(FakePrefab prefab, GameObject? parent, InstanceFlags instanceFlags = InstanceFlags.Default)
         {
             if (!prefab)
@@ -86,6 +83,19 @@ namespace ToggleableBindings.Utility
                 container = dontDestroyOnLoad ? DDOLContainer : Container;
 
             target.SetParent(container, !worldPositionDoesNotStay);
+        }
+
+        private static GameObject CreateInternal(string? name, InstanceFlags instanceFlags = InstanceFlags.Default)
+        {
+            var output = new GameObject(name);
+
+            if ((instanceFlags & InstanceFlags.StartInactive) != 0)
+                output.SetActive(false);
+
+            if ((instanceFlags & InstanceFlags.DontDestroyOnLoad) != 0)
+                Object.DontDestroyOnLoad(output);
+
+            return output;
         }
     }
 }

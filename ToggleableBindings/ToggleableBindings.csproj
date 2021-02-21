@@ -102,6 +102,7 @@
     <Compile Include="Collections\ReadOnlyList.cs" />
     <Compile Include="Collections\NonNullArray.cs" />
     <Compile Include="Extensions\ComponentExtensions.cs" />
+    <Compile Include="Extensions\UnityObjectExtensions.cs" />
     <Compile Include="FakePrefab.cs" />
     <Compile Include="Utility\InstanceFlags.cs" />
     <Compile Include="Utility\ObjectFactory.cs" />

@@ -59,7 +59,7 @@ namespace ToggleableBindings
         /// </param>
         public FakePrefab(GameObject original, string? prefabName = null, bool deactivateBeforeClone = false)
         {
-            if (original)
+            if (!original)
                 throw new System.ArgumentNullException(nameof(original));
 
             _prefabName = NamePrefix + (prefabName ?? original.name);
@@ -96,6 +96,6 @@ namespace ToggleableBindings
             return output;
         }
 
-        public static implicit operator bool([NotNullWhen(true)] FakePrefab value) => value != null;
+        public static implicit operator bool(FakePrefab value) => value != null;
     }
 }

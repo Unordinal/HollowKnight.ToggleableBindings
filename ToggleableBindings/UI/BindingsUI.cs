@@ -105,25 +105,22 @@ namespace ToggleableBindings.UI
 
         public void Setup(IEnumerable<Binding> bindings)
         {
-            foreach (var (go, button) in _buttons)
-            {
-                button.Canceled -= Hide;
+            foreach (var (go, _) in _buttons)
                 Destroy(go);
-            }
 
             _buttons.Clear();
             _buttonsList.ClearSelectables();
             foreach (var binding in bindings)
             {
-                var bindingUIButtonGO = BindingsUIBindingButton.CreateInstance(binding);
+                var bindingUIButtonGO = ObjectFactory.Instantiate(BindingsUIBindingButton.Prefab);
                 bindingUIButtonGO.name = nameof(BindingsUI) + "::" + binding.Name + "Button";
                 bindingUIButtonGO.SetParent(_buttonsGroup, false);
 
                 var bindingUIButton = bindingUIButtonGO.GetComponent<BindingsUIBindingButton>();
-
                 bindingUIButton.Canceled += Hide;
-                _buttons.Add((bindingUIButtonGO, bindingUIButton));
+                bindingUIButton.Setup(binding);
 
+                _buttons.Add((bindingUIButtonGO, bindingUIButton));
                 _buttonsList.AddSelectable(bindingUIButtonGO.GetComponent<Selectable>());
             }
 
