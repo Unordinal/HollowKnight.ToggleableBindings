@@ -63,9 +63,7 @@ namespace ToggleableBindings.UI
             _chainAnimator = chainAnimGO.GetComponent<Animator>();
             _iconAnimator = imageGO.GetComponent<Animator>();
             _title = textGO.GetComponent<Text>();
-
-            if (_bindingImage)
-                _bindingImage.sprite = _defaultSprite;
+            _bindingImage.sprite = _defaultSprite;
         }
 
         private void Start()
@@ -76,6 +74,8 @@ namespace ToggleableBindings.UI
             _audioSource.volume = GameManager.instance.GetImplicitCinematicVolume();
             _selectedSound = vanillaButtonPrefab.selectedSound;
             _deselectedSound = vanillaButtonPrefab.deselectedSound;
+
+            UpdateState(false);
         }
 
         public void Setup(Binding binding)
@@ -86,14 +86,11 @@ namespace ToggleableBindings.UI
             _title.text = binding.Name;
 
             IsSelected = binding.IsApplied;
-            UpdateState(false);
         }
 
         private void UpdateState(bool playEffects)
         {
             ToggleableBindings.Instance.Log(nameof(BindingsUIBindingButton) + "::" + gameObject.name + " - " + nameof(UpdateState));
-            if (Binding == null)
-                throw new InvalidOperationException("Setup() was not called on this binding button!");
 
             float startTime = playEffects ? 0f : 1f;
             if (_bindingImage)
@@ -115,7 +112,7 @@ namespace ToggleableBindings.UI
                 if (_audioSource)
                 {
                     AudioEvent selectSound = IsSelected ? _selectedSound : _deselectedSound;
-                    selectSound.SpawnAndPlayOneShot(_audioSource, transform.position);
+                    _audioSource.PlayOneShot(selectSound.Clip);
                 }
             }
         }
