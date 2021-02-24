@@ -84,7 +84,7 @@ namespace ToggleableBindings.UI
             Binding = binding ?? throw new ArgumentNullException(nameof(binding));
             _defaultSprite = binding.DefaultSprite;
             _selectedSprite = binding.SelectedSprite;
-            _title.text = binding.Name;
+            _title.text = binding.Name.ToUpper();
 
             IsSelected = binding.IsApplied;
         }

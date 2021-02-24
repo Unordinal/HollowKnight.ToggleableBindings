@@ -63,7 +63,7 @@ namespace ToggleableBindings.UI
             superText.text = nameof(ToggleableBindings);
 
             var mainText = mainTextGO.GetComponent<Text>();
-            mainText.text = "Bindings Menu";
+            mainText.text = "MENU";
 
             var descText = descTextGO.GetComponent<Text>();
             descText.text = "Apply and Restore Bindings";

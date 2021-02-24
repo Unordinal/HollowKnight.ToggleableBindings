@@ -32,8 +32,8 @@ namespace ToggleableBindings
 
             scrollerTransform.anchorMin = new Vector2(0f, 0.5f);
             scrollerTransform.anchorMax = new Vector2(1f, 0.5f);
-            scrollerTransform.offsetMin = new Vector2(80f, -207f);
-            scrollerTransform.offsetMax = new Vector2(-80f, 47f);
+            scrollerTransform.offsetMin = new Vector2(0f, -216f);
+            scrollerTransform.offsetMax = new Vector2(0f, 55f);
             scrollerMask.showMaskGraphic = false;
 
             // Content
@@ -43,11 +43,11 @@ namespace ToggleableBindings
 
             contentTransform.anchorMin = new Vector2(0f, 0f);
             contentTransform.anchorMax = new Vector2(1f, 1f);
-            contentTransform.offsetMin = new Vector2(50f, 0f); // -220
-            contentTransform.offsetMax = new Vector2(-50f, 0f); // 60
+            contentTransform.offsetMin = new Vector2(100f, 0f);
+            contentTransform.offsetMax = new Vector2(-100f, 0f);
             contentLayoutGroup.childAlignment = TextAnchor.MiddleCenter;
             contentLayoutGroup.childControlHeight = false;
-            contentLayoutGroup.spacing = 5;
+            contentLayoutGroup.spacing = 11;
 
             //scrollerScrollRect.content = contentTransform;
             scroller.Content = contentTransform;
