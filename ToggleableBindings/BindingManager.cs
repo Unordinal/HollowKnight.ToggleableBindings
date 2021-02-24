@@ -87,11 +87,11 @@ namespace ToggleableBindings
                 if (!IsBindingRegistered<ShellBinding>())
                     RegisterBinding<ShellBinding>();
 
-                if (!IsBindingRegistered<SoulBinding>())
-                    RegisterBinding<SoulBinding>();
-
                 if (!IsBindingRegistered<CharmsBinding>())
                     RegisterBinding<CharmsBinding>();
+
+                if (!IsBindingRegistered<SoulBinding>())
+                    RegisterBinding<SoulBinding>();
             }
         }
 
