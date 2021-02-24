@@ -24,7 +24,9 @@ namespace ToggleableBindings.UI
         private Canvas _canvas = null!;
         private CanvasGroup _group = null!;
         private GameObject _beginButton = null!;
-        private GameObject _buttonsGroup = null!;
+        //private GameObject _buttonsGroup = null!;
+        private SimpleScroller _buttonsScroller = null!;
+        private GameObject _buttonsContent = null!;
         private MenuButtonList _buttonsList = null!;
 
         private readonly List<(GameObject GO, BindingsUIBindingButton Button)> _buttons = new();
@@ -43,12 +45,19 @@ namespace ToggleableBindings.UI
             var mainTextGO = panelGO.FindChild("Title_Main_Text");
             var descTextGO = panelGO.FindChild("Description_Text");
             var beginButtonGO = panelGO.FindChild("BeginButton");
+            beginButtonGO.RemoveComponent<EventTrigger>();
+            beginButtonGO.AddComponent<EventPropagator>();
+
             var beginTextGO = beginButtonGO.FindChild("Text");
             beginTextGO.RemoveComponent<AutoLocalizeTextUI>();
 
-            // Destroy original buttons
+            /*// Destroy original buttons
             foreach (Transform child in buttonsGO.transform.AsGeneric<Transform>().ToList())
-                DestroyImmediate(child.gameObject, true);
+                DestroyImmediate(child.gameObject, true);*/
+
+            DestroyImmediate(buttonsGO, true);
+            var scrollerGO = ObjectFactory.Instantiate(CustomPrefabs.BindingScroller);
+            scrollerGO.SetParent(panelGO, false);
 
             var superText = superTextGO.GetComponent<Text>();
             superText.text = nameof(ToggleableBindings);
@@ -75,10 +84,15 @@ namespace ToggleableBindings.UI
 
             var panelGO = gameObject.FindChild("Panel");
             _beginButton = panelGO.FindChild("BeginButton");
-            _buttonsGroup = panelGO.FindChild("Buttons");
-            _buttonsList = panelGO.GetComponent<MenuButtonList>();
+            //_buttonsGroup = panelGO.FindChild("Buttons");
 
-            var beginTrigger = _beginButton.GetComponent<EventTrigger>();
+            _buttonsList = panelGO.GetComponent<MenuButtonList>();
+            var buttonsScrollerGO = panelGO.FindChild(nameof(CustomPrefabs.BindingScroller));
+            _buttonsScroller = buttonsScrollerGO.GetComponent<SimpleScroller>();
+            _buttonsContent = buttonsScrollerGO.FindChild("Content");
+            //buttonsScroller.Content = (RectTransform)_buttonsContent.transform;
+
+            var beginTrigger = _beginButton.GetComponent<EventPropagator>();
             var submitEntry = new EventTrigger.Entry();
             submitEntry.callback.AddListener((data) => Apply());
             submitEntry.eventID = EventTriggerType.Submit;
@@ -114,7 +128,7 @@ namespace ToggleableBindings.UI
             {
                 var bindingUIButtonGO = ObjectFactory.Instantiate(BindingsUIBindingButton.Prefab);
                 bindingUIButtonGO.name = nameof(BindingsUI) + "::" + binding.Name + "Button";
-                bindingUIButtonGO.SetParent(_buttonsGroup, false);
+                bindingUIButtonGO.SetParent(_buttonsContent, false);
 
                 var bindingUIButton = bindingUIButtonGO.GetComponent<BindingsUIBindingButton>();
                 bindingUIButton.Canceled += Hide;
@@ -136,6 +150,12 @@ namespace ToggleableBindings.UI
 
         public void Show()
         {
+            if (_buttons.Count == 0)
+            {
+                ToggleableBindings.Instance.LogError("Show() was called but the BindingsUI was not set up properly!");
+                return;
+            }
+
             gameObject.SetActive(true);
             StartCoroutine(ShowSequence());
             FSMUtility.SendEventToGameObject(GameCameras.instance.hudCanvas, "OUT");
@@ -145,6 +165,7 @@ namespace ToggleableBindings.UI
         {
             _group.interactable = false;
             EventSystem.current.SetSelectedGameObject(null);
+            _buttonsScroller.Reset();
             yield return null;
 
             if (_animator != null)
@@ -169,7 +190,7 @@ namespace ToggleableBindings.UI
 
         private IEnumerator HideSequence(bool sendEvent)
         {
-            GameObject? selected = EventSystem.current?.currentSelectedGameObject;
+            GameObject? selected = EventSystem.current.currentSelectedGameObject;
             if (selected != null)
             {
                 MenuButton menuButton = selected.GetComponent<MenuButton>();

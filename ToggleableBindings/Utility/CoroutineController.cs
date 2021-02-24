@@ -26,7 +26,7 @@ namespace ToggleableBindings.Utility
         {
             if (!Instance)
             {
-                Instance = new GameObject($"#{nameof(ToggleableBindings)}-{nameof(CoroutineController)}").AddComponent<CoroutineController>();
+                Instance = new GameObject($"{nameof(ToggleableBindings)}::{nameof(CoroutineController)}").AddComponent<CoroutineController>();
                 DontDestroyOnLoad(Instance);
             }
         }

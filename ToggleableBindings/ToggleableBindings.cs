@@ -23,7 +23,8 @@ namespace ToggleableBindings
         {
             return new()
             {
-                ("GG_Atrium", "GG_Challenge_Door")
+                ("GG_Atrium", "GG_Challenge_Door"),
+                ("Room_mapper", "Shop Menu")
             };
         }
 

@@ -20,9 +20,21 @@ namespace ToggleableBindings
 
         [NotNull] public static FakePrefab? CharmsButton { get; private set; }
 
+        [NotNull] public static FakePrefab? ShopMenu { get; private set; }
+
+        [NotNull] public static FakePrefab? ArrowU { get; private set; }
+
+        [NotNull] public static FakePrefab? ArrowD { get; private set; }
+
         public static void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
         {
-            var challengeDoor = preloadedObjects["GG_Atrium"]["GG_Challenge_Door"];
+            InitializeGGAtriumPrefabs(preloadedObjects["GG_Atrium"]);
+            InitializeRoomMapperPrefabs(preloadedObjects["Room_mapper"]);
+        }
+
+        private static void InitializeGGAtriumPrefabs(Dictionary<string, GameObject> preloadedObjects)
+        {
+            var challengeDoor = preloadedObjects["GG_Challenge_Door"];
             var challengeUIFsm = challengeDoor.FindChild("Door/Unlocked Set/Inspect").LocateMyFSM("Challenge UI");
             var showUIAction = challengeUIFsm.GetAction<ShowBossDoorChallengeUI>("Open UI");
             var challengeCanvasPrefab = showUIAction.prefab.Value;
@@ -38,6 +50,17 @@ namespace ToggleableBindings
             ShellButton = new FakePrefab(shellButton, "HeartButton", true);
             SoulButton = new FakePrefab(soulButton, "SoulButton", true);
             CharmsButton = new FakePrefab(charmsButton, "CharmsButton", true);
+        }
+
+        private static void InitializeRoomMapperPrefabs(Dictionary<string, GameObject> preloadedObjects)
+        {
+            var shopMenu = preloadedObjects["Shop Menu"];
+            var arrowU = shopMenu.FindChild("Arrow U");
+            var arrowD = shopMenu.FindChild("Arrow D");
+
+            ShopMenu = new FakePrefab(shopMenu, "Shop Menu", true);
+            ArrowU = new FakePrefab(arrowU, "Arrow U", true);
+            ArrowD = new FakePrefab(arrowD, "Arrow D", true);
         }
     }
 }

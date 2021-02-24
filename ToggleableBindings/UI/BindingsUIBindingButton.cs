@@ -40,6 +40,7 @@ namespace ToggleableBindings.UI
             tempInstance.RemoveComponent<BossDoorChallengeUIBindingButton>();
             tempInstance.AddComponent<BindingsUIBindingButton>();
             tempInstance.AddComponent<AudioSource>();
+            tempInstance.AddComponent<EventPropagator>();
 
             var bindingTextGO = tempInstance.FindChild("Text");
             bindingTextGO.RemoveComponent<AutoLocalizeTextUI>();

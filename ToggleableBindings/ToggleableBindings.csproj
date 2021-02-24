@@ -101,9 +101,12 @@
     <Compile Include="Collections\ReadOnlyDictionary.cs" />
     <Compile Include="Collections\ReadOnlyList.cs" />
     <Compile Include="Collections\NonNullArray.cs" />
+    <Compile Include="CustomPrefabs.cs" />
     <Compile Include="Extensions\ComponentExtensions.cs" />
     <Compile Include="Extensions\UnityObjectExtensions.cs" />
     <Compile Include="FakePrefab.cs" />
+    <Compile Include="UI\EventPropagator.cs" />
+    <Compile Include="UI\SimpleScroller.cs" />
     <Compile Include="Utility\InstanceFlags.cs" />
     <Compile Include="Utility\ObjectFactory.cs" />
     <Compile Include="BaseGamePrefabs.cs" />
