@@ -1,4 +1,5 @@
-﻿
+﻿#nullable enable
+
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -12,7 +13,7 @@ namespace ToggleableBindings.HKQuickSettings
     /// Parameters specify the name and/or whether this setting is save slot-specific.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-    public sealed class QuickSettingAttribute : Attribute
+    internal sealed class QuickSettingAttribute : Attribute
     {
         public string? SettingName { get; }
 

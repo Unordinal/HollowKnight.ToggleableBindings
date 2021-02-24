@@ -249,9 +249,10 @@ namespace ToggleableBindings
         /// <summary>
         /// Deregisters the specified binding.
         /// <para>
-        /// Note: Bindings should generally not be deregistered. If you'd like to control
-        /// whether or not they can be used, you should use <see cref="Binding.CanBeApplied"/>
-        /// instead.
+        /// Note: Bindings should generally not be deregistered except in cases 
+        /// such as when unloading a mod.
+        /// If you'd like to control whether or not they can be used
+        /// by the player, you should use <see cref="Binding.CanBeApplied"/> instead.
         /// </para>
         /// </summary>
         /// <param name="binding">The binding to deregister.</param>
@@ -265,6 +266,9 @@ namespace ToggleableBindings
             Type bindingType = binding.GetType();
             if (!IsBindingRegistered(bindingType))
                 throw new InvalidOperationException(ExcNoBindingWithType);
+
+            if (binding.IsApplied)
+                binding.Restore();
 
             RemoveBinding(binding);
 

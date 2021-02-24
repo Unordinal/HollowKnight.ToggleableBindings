@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace ToggleableBindings.JsonNet
 {
-    public class JsonSerializationBinderException : JsonSerializationException
+    internal class JsonSerializationBinderException : JsonSerializationException
     {
         public JsonSerializationBinderException() { }
 

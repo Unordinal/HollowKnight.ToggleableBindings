@@ -9,7 +9,7 @@ namespace ToggleableBindings
     /// <summary>
     /// Attempts to emulate a Unity prefab, for convenience sake.
     /// </summary>
-    public sealed class FakePrefab
+    internal sealed class FakePrefab
     {
         private static readonly GameObject _prefabContainer;
 
@@ -34,6 +34,11 @@ namespace ToggleableBindings
             _prefabContainer = new GameObject("[[Prefabs]]");
             _prefabContainer.SetActive(false);
             Object.DontDestroyOnLoad(_prefabContainer);
+        }
+
+        internal static void Unload()
+        {
+            Object.DestroyImmediate(_prefabContainer, true);
         }
 
         /// <summary>

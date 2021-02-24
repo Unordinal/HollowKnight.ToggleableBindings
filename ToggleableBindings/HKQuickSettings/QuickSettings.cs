@@ -10,6 +10,7 @@ using GlobalEnums;
 using Modding;
 using Modding.Patches;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.JsonNet;
 using ToggleableBindings.Utility;
@@ -17,7 +18,7 @@ using UnityEngine;
 
 namespace ToggleableBindings.HKQuickSettings
 {
-    public class QuickSettings
+    internal class QuickSettings
     {
         /// <summary>
         /// Called when this <see cref="QuickSettings"/> object finishes initializing.
@@ -459,13 +460,19 @@ namespace ToggleableBindings.HKQuickSettings
 
         private static void LogAndIgnoreSerializationBindingErrors(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)
         {
-            if (args.CurrentObject == args.ErrorContext.OriginalObject
+            /*if (args.CurrentObject == args.ErrorContext.OriginalObject
             && InnerExceptionsAndSelf(args.ErrorContext.Error).OfType<JsonSerializationBinderException>().Any()
-            && args.ErrorContext.OriginalObject.GetType().GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>)))
+            && args.ErrorContext.OriginalObject.GetType().GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>)))*/
+            if (args.CurrentObject == args.ErrorContext.OriginalObject && AnyBinderExceptions(args.ErrorContext.Error))
             {
-                ToggleableBindings.Instance.LogWarn("Encountered a binding failure when attempting to deserialize the specified setting type: " + args.ErrorContext.Path);
-                ToggleableBindings.Instance.LogWarn("Ignore this if you recently uninstalled or disabled a mod.");
+                ToggleableBindings.Instance.LogError(args.ErrorContext.Error.Message);
+                ToggleableBindings.Instance.Log("Ignore the above error if you recently uninstalled or disabled a mod.");
                 args.ErrorContext.Handled = true;
+            }
+
+            static bool AnyBinderExceptions(Exception ex)
+            {
+                return InnerExceptionsAndSelf(ex).Any(e => e is JsonSerializationBinderException);
             }
 
             static IEnumerable<Exception> InnerExceptionsAndSelf(Exception ex)

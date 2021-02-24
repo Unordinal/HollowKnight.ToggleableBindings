@@ -14,7 +14,7 @@ namespace ToggleableBindings.UI
 {
     public class BindingsUI : MonoBehaviour
     {
-        public static FakePrefab Prefab { get; }
+        internal static FakePrefab Prefab { get; }
 
         public event Action<IEnumerable<Binding>>? Applied;
         public event Action? BeforeHidden;

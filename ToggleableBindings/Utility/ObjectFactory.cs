@@ -28,7 +28,7 @@ namespace ToggleableBindings.Utility
         {
             var output = CreateInternal(name, instanceFlags);
 
-            ToggleableBindings.Instance.Log("Created new object: " + output.name);
+            ToggleableBindings.Instance.LogDebug($"Created new object '{output.name}'");
             return output;
         }
 
@@ -45,7 +45,7 @@ namespace ToggleableBindings.Utility
             var clone = Object.Instantiate(original);
             ApplyInstanceFlags(clone, parent, instanceFlags);
 
-            ToggleableBindings.Instance.Log("Instantiated game object as new object: " + clone.name);
+            ToggleableBindings.Instance.LogDebug($"Instantiated game object as new object '{clone.name}'");
             return clone;
         }
 
@@ -62,7 +62,7 @@ namespace ToggleableBindings.Utility
             var instance = prefab.Instantiate();
             ApplyInstanceFlags(instance, parent, instanceFlags);
 
-            ToggleableBindings.Instance.Log("Instantiated prefab as new object: " + instance.name);
+            ToggleableBindings.Instance.LogDebug($"Instantiated prefab as new object '{instance.name}'");
             return instance;
         }
 

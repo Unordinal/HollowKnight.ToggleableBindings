@@ -28,6 +28,12 @@ namespace ToggleableBindings
 
         public static void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
         {
+            if (preloadedObjects == null)
+            {
+                ToggleableBindings.Instance.LogWarn($"Couldn't initialize {nameof(BaseGamePrefabs)} as '{nameof(preloadedObjects)}' was null.");
+                return;
+            }
+
             InitializeGGAtriumPrefabs(preloadedObjects["GG_Atrium"]);
             InitializeRoomMapperPrefabs(preloadedObjects["Room_mapper"]);
         }

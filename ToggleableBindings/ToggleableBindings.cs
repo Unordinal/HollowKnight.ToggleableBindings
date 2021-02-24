@@ -1,9 +1,9 @@
 ﻿#nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Modding;
-using ToggleableBindings.Extensions;
 using ToggleableBindings.HKQuickSettings;
 using ToggleableBindings.UI;
 using UnityEngine;
@@ -11,13 +11,15 @@ using Vasi;
 
 namespace ToggleableBindings
 {
-    public sealed partial class ToggleableBindings : Mod, ITogglableMod
+    public sealed partial class ToggleableBindings : Mod
     {
+        internal static event Action? Unloading;
+
         [NotNull, DisallowNull]
         public static ToggleableBindings? Instance { get; private set; }
 
         [NotNull, DisallowNull]
-        public QuickSettings? Settings { get; private set; }
+        internal QuickSettings? Settings { get; private set; }
 
         public override List<(string, string)> GetPreloadNames()
         {
@@ -27,6 +29,8 @@ namespace ToggleableBindings
                 ("Room_mapper", "Shop Menu")
             };
         }
+
+        public override int LoadPriority() => -10;
 
         public ToggleableBindings() : base()
         {
@@ -44,15 +48,9 @@ namespace ToggleableBindings
             Settings = new();
             BindingManager.Initialize();
             BindingsUIController.Initialize();
-
-            //On.BossDoorChallengeUIBindingButton.OnPointerClick += (orig, self, eventData) => { };
-
-            /*var test = Object.Instantiate(Prefabs.BindingsUI);
-            Object.DontDestroyOnLoad(test);
-            test.name = nameof(UI.BindingsUI);*/
         }
 
-        public void Unload()
+        /*public void Unload()
         {
             RemoveHooks();
             if (Settings.CurrentSaveSlot != null)
@@ -60,7 +58,10 @@ namespace ToggleableBindings
 
             Settings.Unload();
             BindingManager.Unload();
-        }
+            BindingsUIController.Unload();
+
+            Unloading?.Invoke();
+        }*/
 
         public override string GetVersion()
         {

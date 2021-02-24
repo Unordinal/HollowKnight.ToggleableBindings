@@ -12,6 +12,8 @@ namespace ToggleableBindings.UI
     {
         [NotNull] public static BindingsUIController? Instance { get; private set; }
 
+        private static GameObject _container = null!;
+
         private BindingsUI _bindingsUI = null!;
         private tk2dSpriteAnimator _spriteAnimator = null!;
 
@@ -31,13 +33,20 @@ namespace ToggleableBindings.UI
 
         internal static void Initialize()
         {
-            GameObject container = ObjectFactory.Create(nameof(BindingsUIController), InstanceFlags.DontDestroyOnLoad);
-            container.AddComponent<BindingsUIController>();
+            _container = ObjectFactory.Create(nameof(BindingsUIController), InstanceFlags.DontDestroyOnLoad);
+            _container.AddComponent<BindingsUIController>();
+        }
+
+        internal static void Unload()
+        {
+            Instance._bindingsUI.Hide();
+            Destroy(_container);
+            Instance = null;
         }
 
         private void Awake()
         {
-            var bindingsUIGO = ObjectFactory.Instantiate(BindingsUI.Prefab, InstanceFlags.DontDestroyOnLoad);
+            var bindingsUIGO = ObjectFactory.Instantiate(BindingsUI.Prefab, _container, InstanceFlags.DontDestroyOnLoad);
             bindingsUIGO.name = nameof(BindingsUI);
 
             _bindingsUI = bindingsUIGO.GetComponent<BindingsUI>();

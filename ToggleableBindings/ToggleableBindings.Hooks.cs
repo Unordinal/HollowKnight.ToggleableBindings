@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using System;
+using System.Collections;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.UI;
 using ToggleableBindings.VanillaBindings;
@@ -29,7 +30,7 @@ namespace ToggleableBindings
             On.GameManager.ReturnToMainMenu -= GameManager_ReturnToMainMenu;
         }
 
-        private System.Collections.IEnumerator GameManager_ReturnToMainMenu(On.GameManager.orig_ReturnToMainMenu orig, GameManager self, GameManager.ReturnToMainMenuSaveModes saveMode, Action<bool> callback)
+        private IEnumerator GameManager_ReturnToMainMenu(On.GameManager.orig_ReturnToMainMenu orig, GameManager self, GameManager.ReturnToMainMenuSaveModes saveMode, Action<bool> callback)
         {
             MainMenuOrQuit?.Invoke();
             return orig(self, saveMode, callback);
@@ -45,7 +46,7 @@ namespace ToggleableBindings
         {
             orig(self);
 
-            if (Input.GetKeyDown(KeyCode.G))
+            /*if (Input.GetKeyDown(KeyCode.G))
             {
                 
             }
@@ -91,18 +92,7 @@ namespace ToggleableBindings
                     binding.Restore();
                 else
                     binding.Apply();
-            }
-            
-            if (Input.GetKeyDown(KeyCode.Semicolon))
-            {
-                if (!BindingManager.TryGetBinding("TestNewBinding::SpeedBinding", out var binding))
-                    return;
-
-                if (binding.IsApplied)
-                    binding.Restore();
-                else
-                    binding.Apply();
-            }
+            }*/
         }
     }
 }

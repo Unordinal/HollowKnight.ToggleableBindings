@@ -7,7 +7,7 @@ using Newtonsoft.Json.Serialization;
 namespace ToggleableBindings.JsonNet
 {
     // Taken from https://stackoverflow.com/questions/39383098/ignore-missing-types-during-deserialization-of-list
-    public class JsonSerializationBinder : SerializationBinder
+    internal class JsonSerializationBinder : SerializationBinder
     {
         public static JsonSerializationBinder Instance { get; } = new(new DefaultSerializationBinder());
 
@@ -15,10 +15,7 @@ namespace ToggleableBindings.JsonNet
 
         public JsonSerializationBinder(SerializationBinder binder)
         {
-            if (binder == null)
-                throw new ArgumentNullException(nameof(binder));
-
-            _binder = binder;
+            _binder = binder ?? throw new ArgumentNullException(nameof(binder));
         }
 
         public override Type BindToType(string assemblyName, string typeName)

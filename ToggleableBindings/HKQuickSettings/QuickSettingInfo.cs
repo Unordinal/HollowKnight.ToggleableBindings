@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace ToggleableBindings.HKQuickSettings
 {
-    public sealed class QuickSettingInfo
+    internal sealed class QuickSettingInfo
     {
         private readonly string? _name;
 

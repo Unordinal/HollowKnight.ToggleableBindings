@@ -12,11 +12,11 @@ using TB = ToggleableBindings.ToggleableBindings;
 namespace ToggleableBindings
 {
     /// <summary>
-    /// Represents a binding - a modifier that changes the difficulty of the game when active.
+    /// Represents a binding - a modifier that changes the game in some way when active.
     /// <para>
-    /// The members of a binding are serialized to save settings on an opt-in basis. If you want a field
-    /// or property to be saved and loaded with a save file, mark it with the
-    /// <see cref="JsonPropertyAttribute"/>.
+    /// The members of a binding are serialized to the save settings file on an opt-in basis.
+    /// If you want a non-static field or property to be saved and loaded with a save file,
+    /// mark it with <see cref="JsonPropertyAttribute"/>.
     /// </para>
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
@@ -43,6 +43,7 @@ namespace ToggleableBindings
 
         /// <summary>
         /// Gets the display name of this binding.
+        /// This is automatically forced into uppercase when displayed in the bindings menu.
         /// </summary>
         public string Name { get; }
 
@@ -52,23 +53,23 @@ namespace ToggleableBindings
         public bool IsApplied { get; private set; }
 
         /// <summary>
-        /// Gets whether this binding is a base game binding.
+        /// Gets whether this binding is considered a base game binding.
         /// </summary>
         public bool IsVanillaBinding { get; }
 
         /// <summary>
         /// Gets the sprite used for the binding button's default state in the UI.
         /// </summary>
-        public abstract Sprite DefaultSprite { get; }
+        public abstract Sprite? DefaultSprite { get; }
 
         /// <summary>
         /// Gets the sprite used for the binding button's selected state in the UI.
         /// </summary>
-        public abstract Sprite SelectedSprite { get; }
+        public abstract Sprite? SelectedSprite { get; }
 
         /// <summary>
         /// Gets whether this binding was applied when a save was saved. Can be used to adjust
-        /// <see cref="OnApplied"/> accordingly.
+        /// <see cref="OnApplied"/> accordingly if needed.
         /// This property is set when the binding is serialized.
         /// </summary>
         [JsonProperty(Order = -5)]
@@ -100,10 +101,8 @@ namespace ToggleableBindings
         /// The binding may, at any time, be applied regardless of the
         /// result of this method.
         /// <para/>
-        /// Base behavior is to return <see langword="false"/> when the player is
-        /// not near a bench.
-        /// <br/>
-        /// '<c>HeroController.instance?.cState?.nearBench ?? false</c>'
+        /// Base behavior is to return <see langword="true"/> when the player is
+        /// near a bench and <see langword="false"/> otherwise.
         /// </summary>
         /// <returns>
         /// A <see cref="ResultInfo{T}"/> of type <see cref="bool"/> containing:
@@ -130,10 +129,8 @@ namespace ToggleableBindings
         /// The binding may, at any time, be restored regardless of the
         /// result of this method, such as when a save is exited.
         /// <para/>
-        /// Base behavior is to return <see langword="false"/> when the player is
-        /// not near a bench.
-        /// <br/>
-        /// '<c>HeroController.instance?.cState?.nearBench ?? false</c>'
+        /// Base behavior is to return <see langword="true"/> when the player is
+        /// near a bench and <see langword="false"/> otherwise.
         /// </summary>
         /// <returns>
         /// A <see cref="ResultInfo{T}"/> of type <see cref="bool"/> containing:
@@ -155,7 +152,7 @@ namespace ToggleableBindings
         /// <summary>
         /// Applies this binding, enabling its effects.
         /// <para>
-        /// Note: Bindings should be registered with <see cref="BindingManager"/> before
+        /// Bindings should be registered with <see cref="BindingManager"/> before
         /// being applied or restored.
         /// </para>
         /// </summary>
