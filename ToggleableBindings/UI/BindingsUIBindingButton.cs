@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using TMPro;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.Utility;
 using UnityEngine;
@@ -54,7 +55,6 @@ namespace ToggleableBindings.UI
 
         private void Awake()
         {
-            ToggleableBindings.Instance.LogDebug(gameObject.name + " - " + nameof(Awake));
             var chainAnimGO = gameObject.FindChild("Chain_Anim");
             var imageGO = gameObject.FindChild("Image");
             var textGO = gameObject.FindChild("Text");
@@ -69,10 +69,9 @@ namespace ToggleableBindings.UI
 
         private void Start()
         {
-            ToggleableBindings.Instance.LogDebug(gameObject.name + " - " + nameof(Start));
             var vanillaButtonPrefab = BaseGamePrefabs.NailButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>();
 
-            _audioSource.volume = GameManager.instance.GetImplicitCinematicVolume();
+            _audioSource.volume = Mathf.Clamp01(GameManager.instance.GetImplicitCinematicVolume() / 2f);
             _selectedSound = vanillaButtonPrefab.selectedSound;
             _deselectedSound = vanillaButtonPrefab.deselectedSound;
 
@@ -91,8 +90,6 @@ namespace ToggleableBindings.UI
 
         private void UpdateState(bool playEffects)
         {
-            ToggleableBindings.Instance.LogDebug(gameObject.name + " - " + nameof(UpdateState));
-
             float startTime = playEffects ? 0f : 1f;
             if (_bindingImage)
             {
@@ -120,16 +117,27 @@ namespace ToggleableBindings.UI
 
         public void OnSubmit(BaseEventData eventData)
         {
-            ToggleableBindings.Instance.LogDebug(gameObject.name + " - " + nameof(OnSubmit));
-            IsSelected = !IsSelected;
+            var canBeApplied = ToggleableBindings.EnforceBindingRestrictions 
+                ? (Binding?.CanBeApplied() ?? false) 
+                : true;
 
-            UpdateState(true);
-            Selected?.Invoke();
+            if (canBeApplied.Value)
+            {
+                IsSelected = !IsSelected;
+
+                UpdateState(true);
+                Selected?.Invoke();
+            }
+            else
+            {
+                var applyMsgGO = ObjectFactory.Instantiate(CustomPrefabs.BindingApplyMsg);
+                var tmpText = applyMsgGO.FindChild("Text").GetComponent<TextMeshPro>();
+                tmpText.text = canBeApplied.Information ?? tmpText.text;
+            }
         }
 
         public void OnCancel(BaseEventData eventData)
         {
-            ToggleableBindings.Instance.LogDebug(gameObject.name + " - " + nameof(OnCancel));
             Canceled?.Invoke();
         }
 
