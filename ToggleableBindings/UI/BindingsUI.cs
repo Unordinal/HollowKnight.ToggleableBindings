@@ -23,8 +23,7 @@ namespace ToggleableBindings.UI
         private Animator _animator = null!;
         private Canvas _canvas = null!;
         private CanvasGroup _group = null!;
-        private GameObject _beginButton = null!;
-        //private GameObject _buttonsGroup = null!;
+        private GameObject _applyButton = null!;
         private SimpleScroller _buttonsScroller = null!;
         private GameObject _buttonsContent = null!;
         private MenuButtonList _buttonsList = null!;
@@ -47,6 +46,7 @@ namespace ToggleableBindings.UI
             var beginButtonGO = panelGO.FindChild("BeginButton");
             beginButtonGO.RemoveComponent<EventTrigger>();
             beginButtonGO.AddComponent<EventPropagator>();
+            beginButtonGO.name = "ApplyButton";
 
             var beginTextGO = beginButtonGO.FindChild("Text");
             beginTextGO.RemoveComponent<AutoLocalizeTextUI>();
@@ -83,7 +83,7 @@ namespace ToggleableBindings.UI
             _group = GetComponent<CanvasGroup>();
 
             var panelGO = gameObject.FindChild("Panel");
-            _beginButton = panelGO.FindChild("BeginButton");
+            _applyButton = panelGO.FindChild("ApplyButton");
             //_buttonsGroup = panelGO.FindChild("Buttons");
 
             _buttonsList = panelGO.GetComponent<MenuButtonList>();
@@ -92,7 +92,7 @@ namespace ToggleableBindings.UI
             _buttonsContent = buttonsScrollerGO.FindChild("Content");
             //buttonsScroller.Content = (RectTransform)_buttonsContent.transform;
 
-            var beginTrigger = _beginButton.GetComponent<EventPropagator>();
+            var beginTrigger = _applyButton.GetComponent<EventPropagator>();
             var submitEntry = new EventTrigger.Entry();
             submitEntry.callback.AddListener((data) => Apply());
             submitEntry.eventID = EventTriggerType.Submit;
@@ -138,7 +138,7 @@ namespace ToggleableBindings.UI
                 _buttonsList.AddSelectable(bindingUIButtonGO.GetComponent<Selectable>());
             }
 
-            _buttonsList.AddSelectable(_beginButton.GetComponent<Selectable>());
+            _buttonsList.AddSelectable(_applyButton.GetComponent<Selectable>());
             _buttonsList.RecalculateNavigation();
         }
 
@@ -178,6 +178,8 @@ namespace ToggleableBindings.UI
             _group.interactable = true;
             if (_buttons.Count > 0)
                 EventSystem.current.SetSelectedGameObject(_buttons[0].GO);
+            else
+                EventSystem.current.SetSelectedGameObject(_applyButton);
 
             InputHandler.Instance.StartUIInput();
         }

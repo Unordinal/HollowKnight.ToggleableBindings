@@ -52,7 +52,7 @@ namespace ToggleableBindings.UI
             _bindingsUI = bindingsUIGO.GetComponent<BindingsUI>();
             _bindingsUI.Hide();
             _bindingsUI.Applied += Applied;
-            _bindingsUI.Hidden += Hide;
+            _bindingsUI.Hidden += StartHide;
         }
 
         private void Applied(IEnumerable<Binding> selectedBindings)
@@ -84,15 +84,11 @@ namespace ToggleableBindings.UI
         private void Show()
         {
             var pdi = PlayerData.instance;
-            if (pdi == null)
+            var hci = HeroController.instance;
+            if (pdi == null || hci == null)
                 return;
 
             pdi.SetBool("disablePause", true);
-
-            var hci = HeroController.instance;
-            if (!hci)
-                return;
-
             hci.RelinquishControl();
             hci.StopAnimationControl();
             SpriteAnimator.Play("Map Open");
@@ -101,19 +97,18 @@ namespace ToggleableBindings.UI
             _bindingsUI.Show();
         }
 
-        private void Hide()
+        private void StartHide()
         {
-            if (!HeroController.instance)
+            if (HeroController.instance)
             {
-                HideInternal();
-                return;
+                SpriteAnimator.Play("Map Away");
+                SpriteAnimator.AnimationCompleted = (_, _) => Hide();
             }
-
-            SpriteAnimator.Play("Map Away");
-            SpriteAnimator.AnimationCompleted = (_, _) => HideInternal();
+            else
+                Hide();
         }
 
-        private void HideInternal()
+        private void Hide()
         {
             var pdi = PlayerData.instance;
             if (pdi != null)

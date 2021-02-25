@@ -104,7 +104,9 @@
     <Compile Include="CustomPrefabs.cs" />
     <Compile Include="Extensions\ComponentExtensions.cs" />
     <Compile Include="FakePrefab.cs" />
+    <Compile Include="UI\BindingApplyMsg.cs" />
     <Compile Include="UI\EventPropagator.cs" />
+    <Compile Include="UI\SelectedTemporarily.cs" />
     <Compile Include="UI\SimpleScroller.cs" />
     <Compile Include="Utility\InstanceFlags.cs" />
     <Compile Include="Utility\ObjectFactory.cs" />
@@ -127,11 +129,13 @@
     <Compile Include="JsonNet\JsonSerializationBinder.cs" />
     <Compile Include="JsonNet\JsonSerializationBinderException.cs" />
     <Compile Include="TBConstants.cs" />
+    <Compile Include="Utility\ObjectUtil.cs" />
     <Compile Include="Utility\ResultInfo.cs" />
     <Compile Include="ToggleableBindings.cs" />
     <Compile Include="ToggleableBindings.Hooks.cs" />
     <Compile Include="Utility\TryResult.cs" />
     <Compile Include="Utility\TryResult{T}.cs" />
+    <Compile Include="Utility\WaitUntilOrTimeout.cs" />
     <Compile Include="VanillaBindings\CharmsBinding.cs" />
     <Compile Include="VanillaBindings\NailBinding.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

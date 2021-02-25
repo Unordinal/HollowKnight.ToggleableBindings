@@ -99,10 +99,12 @@ namespace ToggleableBindings
         /// is more to check if a player should be prevented from enabling the binding.
         /// <br/>
         /// The binding may, at any time, be applied regardless of the
-        /// result of this method.
-        /// <para/>
+        /// result of this method. If a player sets the setting <see cref="TB.EnforceBindingRestrictions"/>
+        /// to <see langword="false"/>, it will stop this method from being called as well.
+        /// <para>
         /// Base behavior is to return <see langword="true"/> when the player is
-        /// near a bench and <see langword="false"/> otherwise.
+        /// within 10 units of a bench and <see langword="false"/> otherwise.
+        /// </para>
         /// </summary>
         /// <returns>
         /// A <see cref="ResultInfo{T}"/> of type <see cref="bool"/> containing:
@@ -115,8 +117,9 @@ namespace ToggleableBindings
         public virtual ResultInfo<bool> CanBeApplied()
         {
             bool isNearBench = false;
-            if (HeroController.instance && HeroController.instance.cState != null)
-                isNearBench = HeroController.instance.cState.nearBench;
+            var bench = ObjectUtil.GetBenchInScene();
+            if (bench != null)
+                isNearBench = ObjectUtil.HeroIsWithinDistanceOf(bench, 10f);
 
             return new(isNearBench, string.Format(MustBeNearBench, "apply"));
         }
@@ -127,10 +130,12 @@ namespace ToggleableBindings
         /// is more to check if a player should be prevented from disabling the binding.
         /// <br/>
         /// The binding may, at any time, be restored regardless of the
-        /// result of this method, such as when a save is exited.
-        /// <para/>
+        /// result of this method, such as when a save is exited. If a player sets the setting <see cref="TB.EnforceBindingRestrictions"/>
+        /// to <see langword="false"/>, it will stop this method from being called as well.
+        /// <para>
         /// Base behavior is to return <see langword="true"/> when the player is
-        /// near a bench and <see langword="false"/> otherwise.
+        /// within 10 units of a bench and <see langword="false"/> otherwise.
+        /// </para>
         /// </summary>
         /// <returns>
         /// A <see cref="ResultInfo{T}"/> of type <see cref="bool"/> containing:
@@ -143,8 +148,9 @@ namespace ToggleableBindings
         public virtual ResultInfo<bool> CanBeRestored()
         {
             bool isNearBench = false;
-            if (HeroController.instance && HeroController.instance.cState != null)
-                isNearBench = HeroController.instance.cState.nearBench;
+            var bench = ObjectUtil.GetBenchInScene();
+            if (bench != null)
+                isNearBench = ObjectUtil.HeroIsWithinDistanceOf(bench, 10f);
 
             return new(isNearBench, string.Format(MustBeNearBench, "restore"));
         }

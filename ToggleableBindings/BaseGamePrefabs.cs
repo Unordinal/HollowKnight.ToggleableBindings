@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using TeamCherry;
 using ToggleableBindings.Extensions;
 using UnityEngine;
 using Vasi;
@@ -26,6 +28,8 @@ namespace ToggleableBindings
 
         [NotNull] public static FakePrefab? ArrowD { get; private set; }
 
+        [NotNull] public static FakePrefab? CharmEquipMsg { get; private set; }
+
         public static void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
         {
             if (preloadedObjects == null)
@@ -36,6 +40,7 @@ namespace ToggleableBindings
 
             InitializeGGAtriumPrefabs(preloadedObjects["GG_Atrium"]);
             InitializeRoomMapperPrefabs(preloadedObjects["Room_mapper"]);
+            InitializeMiscPrefabs();
         }
 
         private static void InitializeGGAtriumPrefabs(Dictionary<string, GameObject> preloadedObjects)
@@ -67,6 +72,16 @@ namespace ToggleableBindings
             ShopMenu = new FakePrefab(shopMenu, "Shop Menu", true);
             ArrowU = new FakePrefab(arrowU, "Arrow U", true);
             ArrowD = new FakePrefab(arrowD, "Arrow D", true);
+        }
+
+        private static void InitializeMiscPrefabs()
+        {
+            var allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+
+            var charmEquipMsg = allObjects.First(go => go.name == "Charm Equip Msg");
+            CharmEquipMsg = new FakePrefab(charmEquipMsg, nameof(CharmEquipMsg), true);
+
+            Resources.UnloadUnusedAssets();
         }
     }
 }

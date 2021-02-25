@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
 using System.Diagnostics.CodeAnalysis;
+using TMPro;
+using ToggleableBindings.Extensions;
 using ToggleableBindings.UI;
 using ToggleableBindings.Utility;
 using UnityEngine;
@@ -12,16 +14,36 @@ namespace ToggleableBindings
     {
         [NotNull] public static FakePrefab? BindingScroller { get; private set; }
 
+        [NotNull] public static FakePrefab? BindingApplyMsg { get; private set; }
+
         static CustomPrefabs()
         {
-            var bindingScroller = CreateBindingScroller();
-
-            BindingScroller = new FakePrefab(bindingScroller, nameof(BindingScroller), true);
-
-            Object.DestroyImmediate(bindingScroller, true);
+            BindingApplyMsg = CreateBindingApplyMsgPrefab();
+            BindingScroller = CreateBindingScrollerPrefab();
         }
 
-        private static GameObject CreateBindingScroller()
+        private static FakePrefab CreateBindingApplyMsgPrefab()
+        {
+            var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.CharmEquipMsg);
+            tempInstance.RemoveComponent<PlayMakerFSM>();
+            tempInstance.AddComponent<BindingApplyMsg>();
+            tempInstance.AddComponent<SelectedTemporarily>();
+
+            var buttonInfoGO = tempInstance.FindChild("Button Info");
+            Object.DestroyImmediate(buttonInfoGO, true);
+
+            var textGO = tempInstance.FindChild("Text");
+            textGO.RemoveComponent<ChangeFontByLanguage>();
+
+            var text = textGO.GetComponent<TextMeshPro>();
+            text.text = "!Placeholder text here - you shouldn't see this!";
+
+            var prefab = new FakePrefab(tempInstance, nameof(BindingApplyMsg), true);
+            Object.DestroyImmediate(tempInstance, true);
+            return prefab;
+        }
+
+        private static FakePrefab CreateBindingScrollerPrefab()
         {
             // Scroller
             var scrollerGO = ObjectFactory.Create("Scroller");
@@ -49,10 +71,12 @@ namespace ToggleableBindings
             contentLayoutGroup.childControlHeight = false;
             contentLayoutGroup.spacing = 11;
 
-            //scrollerScrollRect.content = contentTransform;
             scroller.Content = contentTransform;
             contentGO.transform.SetParent(scrollerGO.transform, false);
-            return scrollerGO;
+
+            var prefab = new FakePrefab(scrollerGO, nameof(BindingScroller));
+            Object.DestroyImmediate(scrollerGO, true);
+            return prefab;
         }
     }
 }

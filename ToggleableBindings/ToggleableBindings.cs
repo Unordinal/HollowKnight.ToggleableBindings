@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Modding;
 using ToggleableBindings.HKQuickSettings;
@@ -13,10 +14,13 @@ namespace ToggleableBindings
 {
     public sealed partial class ToggleableBindings : Mod
     {
-        internal static event Action? Unloading;
+        //public static event Action? Unloading;
 
         [NotNull, DisallowNull]
         public static ToggleableBindings? Instance { get; private set; }
+
+        [QuickSetting, DefaultValue(true)]
+        internal static bool EnforceBindingRestrictions { get; private set; } = true;
 
         [NotNull, DisallowNull]
         internal QuickSettings? Settings { get; private set; }
