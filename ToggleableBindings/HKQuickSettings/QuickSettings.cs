@@ -69,7 +69,7 @@ namespace ToggleableBindings.HKQuickSettings
             Formatting = Formatting.Indented,
             ObjectCreationHandling = ObjectCreationHandling.Auto,
             NullValueHandling = NullValueHandling.Ignore,
-            DefaultValueHandling = DefaultValueHandling.Include,
+            DefaultValueHandling = DefaultValueHandling.Populate,
             ReferenceLoopHandling = ReferenceLoopHandling.Error,
             TypeNameHandling = TypeNameHandling.Auto,
             ConstructorHandling = ConstructorHandling.Default,
