@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,8 +10,10 @@ namespace ToggleableBindings.UI
 {
     public class SimpleScroller : MonoBehaviour
     {
+
         [NotNull] private RectTransform? _scrollTransform;
         [NotNull, SerializeField] private RectTransform? _content;
+        [NotNull] private Hashtable? _tweenArgs;
 
         private GameObject? _lastSelected;
 
@@ -23,6 +26,14 @@ namespace ToggleableBindings.UI
         private void Awake()
         {
             _scrollTransform = GetComponent<RectTransform>();
+            _tweenArgs = new Hashtable
+            {
+                ["name"] = nameof(SimpleScroller),
+                ["time"] = 0.15f,
+                ["easetype"] = iTween.EaseType.easeOutSine,
+                ["onupdate"] = nameof(OnUpdateiTween),
+                ["onupdatetarget"] = gameObject
+            };
         }
 
         private void Update()
@@ -51,21 +62,38 @@ namespace ToggleableBindings.UI
             if (selectedPosY + selectedTransform.rect.height > scrollMaxY)
             {
                 selectedPosY -= _scrollTransform.rect.height - selectedTransform.rect.height;
-                _content.anchoredPosition = new Vector2(contentPosX, selectedPosY);
+                //_content.anchoredPosition = new Vector2(contentPosX, selectedPosY);
+                ScrollTo(new Vector2(contentPosX, selectedPosY));
             }
             // Selected position is above the upper bound of the content.
             else if (selectedPosY < scrollMinY)
             {
-                _content.anchoredPosition = new Vector2(contentPosX, selectedPosY);
+                //_content.anchoredPosition = new Vector2(contentPosX, selectedPosY);
+                ScrollTo(new Vector2(contentPosX, selectedPosY));
             }
 
             _lastSelected = selected;
+        }
+
+        private void ScrollTo(Vector2 targetPos)
+        {
+            iTween.StopByName(_tweenArgs["name"].ToString());
+
+            _tweenArgs["from"] = _content.anchoredPosition;
+            _tweenArgs["to"] = targetPos;
+
+            iTween.ValueTo(gameObject, _tweenArgs);
         }
 
         public void Reset()
         {
             _content.anchoredPosition = new Vector2(_content.anchoredPosition.x, 0f);
             _lastSelected = null;
+        }
+
+        private void OnUpdateiTween(Vector2 newPos)
+        {
+            _content.anchoredPosition = newPos;
         }
     }
 }
