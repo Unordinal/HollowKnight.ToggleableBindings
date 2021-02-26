@@ -52,10 +52,6 @@ namespace ToggleableBindings.UI
             var beginTextGO = beginButtonGO.FindChild("Text");
             beginTextGO.RemoveComponent<AutoLocalizeTextUI>();
 
-            /*// Destroy original buttons
-            foreach (Transform child in buttonsGO.transform.AsGeneric<Transform>().ToList())
-                DestroyImmediate(child.gameObject, true);*/
-
             DestroyImmediate(buttonsGO, true);
             var scrollerGO = ObjectFactory.Instantiate(CustomPrefabs.BindingScroller);
             scrollerGO.SetParent(panelGO, false);
@@ -85,8 +81,8 @@ namespace ToggleableBindings.UI
 
             var panelGO = gameObject.FindChild("Panel");
             _applyButton = panelGO.FindChild("ApplyButton");
-
             _buttonsList = panelGO.GetComponent<MenuButtonList>();
+
             var buttonsScrollerGO = panelGO.FindChild(nameof(CustomPrefabs.BindingScroller));
             _buttonsScroller = buttonsScrollerGO.GetComponent<SimpleScroller>();
             _buttonsContent = buttonsScrollerGO.FindChild("Content");
@@ -118,7 +114,6 @@ namespace ToggleableBindings.UI
 
         public void Setup(IEnumerable<Binding> bindings)
         {
-            Assert.IsNotNull(_buttons);
             Assert.IsNotNull(_buttonsList, $"{nameof(_buttonsList)} was null - was Setup() called before Awake() had a chance to be called, such as on an inactive object?");
 
             foreach (var button in _buttons)
@@ -152,6 +147,8 @@ namespace ToggleableBindings.UI
 
         public void Show()
         {
+            Assert.IsNotNull(_buttonsScroller, nameof(_buttonsScroller));
+
             if (_buttons.Count == 0)
             {
                 ToggleableBindings.Instance.LogError("Show() was called but the BindingsUI was not set up properly!");
