@@ -37,7 +37,7 @@ namespace ToggleableBindings.UI
 
         static BindingsUIBindingButton()
         {
-            var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.NailButton, InstanceFlags.StartInactive);
+            var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.NailButton);
             tempInstance.RemoveComponent<BossDoorChallengeUIBindingButton>();
             tempInstance.AddComponent<BindingsUIBindingButton>();
             tempInstance.AddComponent<AudioSource>();

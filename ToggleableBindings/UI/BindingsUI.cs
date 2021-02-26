@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using ToggleableBindings.Debugging;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.Utility;
 using UnityEngine;
@@ -32,7 +33,7 @@ namespace ToggleableBindings.UI
 
         static BindingsUI()
         {
-            var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.ChallengeDoorCanvas, InstanceFlags.StartInactive);
+            var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.ChallengeDoorCanvas);
             tempInstance.RemoveComponent<BossDoorChallengeUI>();
             var bindingsUI = tempInstance.AddComponent<BindingsUI>();
 
@@ -112,12 +113,14 @@ namespace ToggleableBindings.UI
         private void Start()
         {
             _canvas.worldCamera = GameCameras.instance.hudCamera;
-            _group.interactable = false;
             _group.alpha = 0f;
         }
 
         public void Setup(IEnumerable<Binding> bindings)
         {
+            Assert.IsNotNull(_buttons);
+            Assert.IsNotNull(_buttonsList, $"{nameof(_buttonsList)} was null - was Setup() called before Awake() had a chance to be called, such as on an inactive object?");
+
             foreach (var button in _buttons)
                 DestroyImmediate(button.gameObject);
 
@@ -196,7 +199,6 @@ namespace ToggleableBindings.UI
                     menuButton.ForceDeselect();
             }
 
-            InputHandler.Instance.StopUIInput();
             StartCoroutine(HideSequence(true));
         }
 
