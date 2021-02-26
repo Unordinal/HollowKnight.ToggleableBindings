@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -14,8 +13,6 @@ namespace ToggleableBindings
 {
     public sealed partial class ToggleableBindings : Mod
     {
-        //public static event Action? Unloading;
-
         [NotNull, DisallowNull]
         public static ToggleableBindings? Instance { get; private set; }
 
@@ -25,21 +22,13 @@ namespace ToggleableBindings
         [NotNull, DisallowNull]
         internal QuickSettings? Settings { get; private set; }
 
-        public override List<(string, string)> GetPreloadNames()
-        {
-            return new()
-            {
-                ("GG_Atrium", "GG_Challenge_Door"),
-                ("Room_mapper", "Shop Menu")
-            };
-        }
-
-        public override int LoadPriority() => -10;
-
         public ToggleableBindings() : base()
         {
             if (Instance != null)
+            {
+                LogError($"An instance of {nameof(ToggleableBindings)} already exists!");
                 return;
+            }
 
             Instance = this;
         }
@@ -52,6 +41,8 @@ namespace ToggleableBindings
             Settings = new();
             BindingManager.Initialize();
             BindingsUIController.Initialize();
+
+            LogDebug("Initialized.");
         }
 
         /*public void Unload()
@@ -67,9 +58,17 @@ namespace ToggleableBindings
             Unloading?.Invoke();
         }*/
 
-        public override string GetVersion()
+        public override int LoadPriority() => -10;
+
+        public override List<(string, string)> GetPreloadNames()
         {
-            return VersionUtil.GetVersion<ToggleableBindings>();
+            return new()
+            {
+                ("GG_Atrium", "GG_Challenge_Door"),
+                ("Room_mapper", "Shop Menu")
+            };
         }
+
+        public override string GetVersion() => VersionUtil.GetVersion<ToggleableBindings>();
     }
 }

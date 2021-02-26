@@ -105,6 +105,7 @@
     <Compile Include="CustomPrefabs.cs" />
     <Compile Include="Debugging\Assert.cs" />
     <Compile Include="Debugging\Exceptions\AssertFailedException.cs" />
+    <Compile Include="Extensions\AsReadOnlyExtensions.cs" />
     <Compile Include="Extensions\ComponentExtensions.cs" />
     <Compile Include="Extensions\HashtableExtensions.cs" />
     <Compile Include="FakePrefab.cs" />
