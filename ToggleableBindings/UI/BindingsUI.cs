@@ -33,7 +33,7 @@ namespace ToggleableBindings.UI
 
         static BindingsUI()
         {
-            var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.ChallengeDoorCanvas);
+            var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.ChallengeDoorCanvas, InstanceFlags.StartInactive);
             tempInstance.RemoveComponent<BossDoorChallengeUI>();
             var bindingsUI = tempInstance.AddComponent<BindingsUI>();
 
@@ -68,7 +68,7 @@ namespace ToggleableBindings.UI
             var beginText = beginTextGO.GetComponent<Text>();
             beginText.text = "APPLY";
 
-            Prefab = new FakePrefab(tempInstance, nameof(BindingsUI));
+            Prefab = new FakePrefab(tempInstance, nameof(BindingsUI), true);
 
             DestroyImmediate(tempInstance, true);
         }

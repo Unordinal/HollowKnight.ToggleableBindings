@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using GlobalEnums;
+using ToggleableBindings.Debugging;
 using ToggleableBindings.Utility;
 using UnityEngine;
 
@@ -17,7 +18,7 @@ namespace ToggleableBindings.UI
         private BindingsUI _bindingsUI = null!;
         private tk2dSpriteAnimator _spriteAnimator = null!;
 
-        private tk2dSpriteAnimator SpriteAnimator => _spriteAnimator = _spriteAnimator != null ? _spriteAnimator : _spriteAnimator = HeroController.instance.GetComponent<tk2dSpriteAnimator>();
+        private tk2dSpriteAnimator SpriteAnimator => _spriteAnimator = _spriteAnimator != null ? _spriteAnimator : _spriteAnimator = HeroController.instance?.GetComponent<tk2dSpriteAnimator>()!;
 
         public BindingsUIController()
         {
@@ -46,7 +47,9 @@ namespace ToggleableBindings.UI
 
         private void Awake()
         {
-            var bindingsUIGO = ObjectFactory.Instantiate(BindingsUI.Prefab, _container, InstanceFlags.DontDestroyOnLoad);
+            Assert.IsNotNull(_container);
+
+            var bindingsUIGO = ObjectFactory.Instantiate(BindingsUI.Prefab, _container);
             bindingsUIGO.name = nameof(BindingsUI);
 
             _bindingsUI = bindingsUIGO.GetComponent<BindingsUI>();
@@ -76,6 +79,7 @@ namespace ToggleableBindings.UI
                 var inputActions = gmi.inputHandler.inputActions;
                 if (inputActions.down.IsPressed && inputActions.superDash.IsPressed)
                 {
+                    ToggleableBindings.Instance.LogDebug("Opened BindingsUI.");
                     _bindingsUI.Setup(BindingManager.RegisteredBindings.Values);
                     Show();
                 }
@@ -84,6 +88,8 @@ namespace ToggleableBindings.UI
 
         private void Show()
         {
+            Assert.IsNotNull(_bindingsUI);
+
             var pdi = PlayerData.instance;
             var hci = HeroController.instance;
             if (pdi == null || hci == null)
