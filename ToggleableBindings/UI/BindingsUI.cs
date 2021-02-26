@@ -28,7 +28,7 @@ namespace ToggleableBindings.UI
         private GameObject _buttonsContent = null!;
         private MenuButtonList _buttonsList = null!;
 
-        private readonly List<(GameObject GO, BindingsUIBindingButton Button)> _buttons = new();
+        private readonly List<BindingsUIBindingButton> _buttons = new();
 
         static BindingsUI()
         {
@@ -84,13 +84,11 @@ namespace ToggleableBindings.UI
 
             var panelGO = gameObject.FindChild("Panel");
             _applyButton = panelGO.FindChild("ApplyButton");
-            //_buttonsGroup = panelGO.FindChild("Buttons");
 
             _buttonsList = panelGO.GetComponent<MenuButtonList>();
             var buttonsScrollerGO = panelGO.FindChild(nameof(CustomPrefabs.BindingScroller));
             _buttonsScroller = buttonsScrollerGO.GetComponent<SimpleScroller>();
             _buttonsContent = buttonsScrollerGO.FindChild("Content");
-            //buttonsScroller.Content = (RectTransform)_buttonsContent.transform;
 
             var beginTrigger = _applyButton.GetComponent<EventPropagator>();
             var submitEntry = new EventTrigger.Entry();
@@ -114,13 +112,14 @@ namespace ToggleableBindings.UI
         private void Start()
         {
             _canvas.worldCamera = GameCameras.instance.hudCamera;
+            _group.interactable = false;
             _group.alpha = 0f;
         }
 
         public void Setup(IEnumerable<Binding> bindings)
         {
-            foreach (var (go, _) in _buttons)
-                Destroy(go);
+            foreach (var button in _buttons)
+                DestroyImmediate(button.gameObject);
 
             _buttons.Clear();
             _buttonsList.ClearSelectables();
@@ -134,7 +133,7 @@ namespace ToggleableBindings.UI
                 bindingUIButton.Canceled += Hide;
                 bindingUIButton.Setup(binding);
 
-                _buttons.Add((bindingUIButtonGO, bindingUIButton));
+                _buttons.Add(bindingUIButton);
                 _buttonsList.AddSelectable(bindingUIButtonGO.GetComponent<Selectable>());
             }
 
@@ -144,7 +143,7 @@ namespace ToggleableBindings.UI
 
         public void Apply()
         {
-            Applied?.Invoke(_buttons.Where(b => b.Button.Binding != null && b.Button.IsSelected).Select(b => b.Button.Binding!));
+            Applied?.Invoke(_buttons.Where(b => b.Binding != null && b.IsSelected).Select(b => b.Binding!));
             Hide();
         }
 
@@ -156,16 +155,17 @@ namespace ToggleableBindings.UI
                 return;
             }
 
+            _group.interactable = false;
+            _buttonsScroller.Reset();
+            EventSystem.current.SetSelectedGameObject(null);
             gameObject.SetActive(true);
+
             StartCoroutine(ShowSequence());
             FSMUtility.SendEventToGameObject(GameCameras.instance.hudCanvas, "OUT");
         }
 
         private IEnumerator ShowSequence()
         {
-            _group.interactable = false;
-            EventSystem.current.SetSelectedGameObject(null);
-            _buttonsScroller.Reset();
             yield return null;
 
             if (_animator != null)
@@ -176,10 +176,10 @@ namespace ToggleableBindings.UI
             }
 
             _group.interactable = true;
-            if (_buttons.Count > 0)
-                EventSystem.current.SetSelectedGameObject(_buttons[0].GO);
+            /*if (_buttons.Count > 0)
+                EventSystem.current.SetSelectedGameObject(_buttons[0].gameObject);
             else
-                EventSystem.current.SetSelectedGameObject(_applyButton);
+                EventSystem.current.SetSelectedGameObject(_applyButton);*/
 
             InputHandler.Instance.StartUIInput();
         }
@@ -187,19 +187,21 @@ namespace ToggleableBindings.UI
         public void Hide()
         {
             BeforeHidden?.Invoke();
+
+            GameObject? selected = EventSystem.current.currentSelectedGameObject;
+            if (selected != null)
+            {
+                MenuButton menuButton = selected.GetComponent<MenuButton>();
+                if (menuButton)
+                    menuButton.ForceDeselect();
+            }
+
+            InputHandler.Instance.StopUIInput();
             StartCoroutine(HideSequence(true));
         }
 
         private IEnumerator HideSequence(bool sendEvent)
         {
-            GameObject? selected = EventSystem.current.currentSelectedGameObject;
-            if (selected != null)
-            {
-                MenuButton menuButton = selected.GetComponent<MenuButton>();
-                if (menuButton != null)
-                    menuButton.ForceDeselect();
-            }
-
             if (_animator != null)
             {
                 _animator.Play("Close");
