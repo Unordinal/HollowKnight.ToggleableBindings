@@ -2,10 +2,8 @@
 
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using ToggleableBindings.Extensions;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace ToggleableBindings.UI
 {
@@ -15,7 +13,6 @@ namespace ToggleableBindings.UI
     [RequireComponent(typeof(RectTransform))]
     public class SimpleScroller : MonoBehaviour
     {
-
         [NotNull] private RectTransform? _scrollTransform;
         [NotNull, SerializeField] private RectTransform? _content;
         [NotNull] private Hashtable? _tweenArgs;
@@ -36,7 +33,7 @@ namespace ToggleableBindings.UI
                 ["name"] = nameof(SimpleScroller),
                 ["time"] = 0.15f,
                 ["easetype"] = iTween.EaseType.easeOutSine,
-                ["onupdate"] = nameof(OnUpdateiTween),
+                ["onupdate"] = nameof(ScrollToInstant),
                 ["onupdatetarget"] = gameObject
             };
         }
@@ -80,9 +77,16 @@ namespace ToggleableBindings.UI
             _lastSelected = selected;
         }
 
+        public void Reset()
+        {
+            _content.anchoredPosition = new Vector2(_content.anchoredPosition.x, 0f);
+            _lastSelected = null;
+        }
+
         private void ScrollTo(Vector2 targetPos)
         {
-            iTween.StopByName((string)_tweenArgs["name"]);
+            if (iTween.Count(gameObject) > 0)
+                iTween.Stop(gameObject);
 
             _tweenArgs["from"] = _content.anchoredPosition;
             _tweenArgs["to"] = targetPos;
@@ -90,15 +94,9 @@ namespace ToggleableBindings.UI
             iTween.ValueTo(gameObject, _tweenArgs);
         }
 
-        public void Reset()
+        private void ScrollToInstant(Vector2 targetPos)
         {
-            _content.anchoredPosition = new Vector2(_content.anchoredPosition.x, 0f);
-            _lastSelected = null;
-        }
-
-        private void OnUpdateiTween(Vector2 newPos)
-        {
-            _content.anchoredPosition = newPos;
+            _content.anchoredPosition = targetPos;
         }
     }
 }
