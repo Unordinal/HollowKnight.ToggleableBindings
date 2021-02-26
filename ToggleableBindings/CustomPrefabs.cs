@@ -36,7 +36,7 @@ namespace ToggleableBindings
             textGO.RemoveComponent<ChangeFontByLanguage>();
 
             var text = textGO.GetComponent<TextMeshPro>();
-            text.text = "!Placeholder text here - you shouldn't see this!";
+            text.text = "!Placeholder text - if you're seeing this, something went wrong!";
 
             var prefab = new FakePrefab(tempInstance, nameof(BindingApplyMsg), true);
             Object.DestroyImmediate(tempInstance, true);
