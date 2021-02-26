@@ -56,11 +56,11 @@ namespace ToggleableBindings
             GameObject soulButton = buttonsPanel.FindChild("SoulButton");
             GameObject charmsButton = buttonsPanel.FindChild("CharmsButton");
 
-            ChallengeDoorCanvas = new FakePrefab(challengeCanvasPrefab, "GG_Challenge_Door_Canvas", true);
-            NailButton = new FakePrefab(nailButton, "NailButton", true);
-            ShellButton = new FakePrefab(shellButton, "HeartButton", true);
-            SoulButton = new FakePrefab(soulButton, "SoulButton", true);
-            CharmsButton = new FakePrefab(charmsButton, "CharmsButton", true);
+            ChallengeDoorCanvas = new FakePrefab(challengeCanvasPrefab, "GG_Challenge_Door_Canvas");
+            NailButton = new FakePrefab(nailButton, "NailButton");
+            ShellButton = new FakePrefab(shellButton, "HeartButton");
+            SoulButton = new FakePrefab(soulButton, "SoulButton");
+            CharmsButton = new FakePrefab(charmsButton, "CharmsButton");
         }
 
         private static void InitializeRoomMapperPrefabs(Dictionary<string, GameObject> preloadedObjects)
@@ -69,9 +69,9 @@ namespace ToggleableBindings
             var arrowU = shopMenu.FindChild("Arrow U");
             var arrowD = shopMenu.FindChild("Arrow D");
 
-            ShopMenu = new FakePrefab(shopMenu, "Shop Menu", true);
-            ArrowU = new FakePrefab(arrowU, "Arrow U", true);
-            ArrowD = new FakePrefab(arrowD, "Arrow D", true);
+            ShopMenu = new FakePrefab(shopMenu, "Shop Menu");
+            ArrowU = new FakePrefab(arrowU, "Arrow U");
+            ArrowD = new FakePrefab(arrowD, "Arrow D");
         }
 
         private static void InitializeMiscPrefabs()
@@ -79,7 +79,7 @@ namespace ToggleableBindings
             var allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
 
             var charmEquipMsg = allObjects.First(go => go.name == "Charm Equip Msg");
-            CharmEquipMsg = new FakePrefab(charmEquipMsg, nameof(CharmEquipMsg), true);
+            CharmEquipMsg = new FakePrefab(charmEquipMsg, nameof(CharmEquipMsg));
 
             Resources.UnloadUnusedAssets();
         }

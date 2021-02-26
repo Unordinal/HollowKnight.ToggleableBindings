@@ -38,7 +38,7 @@ namespace ToggleableBindings
             var text = textGO.GetComponent<TextMeshPro>();
             text.text = "!Placeholder text - if you're seeing this, something went wrong!";
 
-            var prefab = new FakePrefab(tempInstance, nameof(BindingApplyMsg), true);
+            var prefab = new FakePrefab(tempInstance, nameof(BindingApplyMsg));
             Object.DestroyImmediate(tempInstance, true);
             return prefab;
         }
