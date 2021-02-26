@@ -61,7 +61,7 @@ namespace ToggleableBindings
         /// <summary>
         /// Gets a read-only dictionary that provides a view of the currently registered binding types and their associated binding objects.
         /// </summary>
-        public static IReadOnlyDictionary<Type, Binding> RegisteredBindings { get; } = new ReadOnlyDictionary<Type, Binding>(_registeredBindings);
+        public static IReadOnlyDictionary<Type, Binding> RegisteredBindings { get; } = _registeredBindings.AsReadOnly();
 
         internal static void Initialize()
         {
@@ -205,6 +205,10 @@ namespace ToggleableBindings
         /// <summary>
         /// Registers the specified binding. Only one binding of a given type
         /// can be registered at a time.
+        /// <para>
+        /// Registering a binding allows it to be applied and restored by the player
+        /// from the bindings menu.
+        /// </para>
         /// </summary>
         /// <param name="binding">The binding to register.</param>
         /// <exception cref="ArgumentNullException"/>
@@ -225,6 +229,7 @@ namespace ToggleableBindings
 
         /// <summary>
         /// Registers a new binding of the specified type. Only one binding of a given type can be registered at a time.
+        /// <para><inheritdoc cref="RegisterBinding(Binding)"/></para>
         /// </summary>
         /// <typeparam name="T">The type of binding to create and register.</typeparam>
         /// <exception cref="InvalidOperationException"/>
@@ -469,7 +474,7 @@ namespace ToggleableBindings
             binding.Apply();
         }
 
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T"><inheritdoc cref="ApplyBinding(Type)" path="/param[1]"/></typeparam>
         /// <exception cref="InvalidOperationException"/>
         /// <exception cref="TypeArgumentException"/>
         /// <inheritdoc cref="ApplyBinding(Type)" path="/*[not(self::exception)]"/>
@@ -565,11 +570,11 @@ namespace ToggleableBindings
         {
             lock (_lock)
             {
-                HashSet<Type> typesSet = new HashSet<Type>(bindingTypes);
+                HashSet<Type> shouldBeActiveSet = new HashSet<Type>(bindingTypes);
 
                 foreach (var (type, binding) in RegisteredBindings)
                 {
-                    bool shouldToggle = typesSet.Contains(type) != binding.IsApplied;
+                    bool shouldToggle = shouldBeActiveSet.Contains(type) != binding.IsApplied;
                     if (shouldToggle)
                     {
                         if (!binding.IsApplied)
@@ -716,7 +721,7 @@ namespace ToggleableBindings
 
         private static IEnumerator RegisterDeserializedBindings()
         {
-            yield return new WaitWhile(() => !HeroController.instance);
+            yield return null;
 
             lock (_lock)
             {
