@@ -74,6 +74,7 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
+      <Aliases>global</Aliases>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
       <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.UIModule.dll</HintPath>
@@ -103,6 +104,7 @@
     <Compile Include="Collections\NonNullArray.cs" />
     <Compile Include="CustomPrefabs.cs" />
     <Compile Include="Extensions\ComponentExtensions.cs" />
+    <Compile Include="Extensions\HashtableExtensions.cs" />
     <Compile Include="FakePrefab.cs" />
     <Compile Include="UI\BindingApplyMsg.cs" />
     <Compile Include="UI\EventPropagator.cs" />
