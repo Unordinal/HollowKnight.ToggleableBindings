@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using ToggleableBindings.Utility;
 using UnityEngine;
@@ -39,6 +40,7 @@ namespace ToggleableBindings.VanillaBindings
         protected override void OnApplied()
         {
             On.GGCheckBoundSoul.OnEnter += GGCheckBoundSoul_OnEnter;
+            IL.BossSequenceController.RestoreBindings += BossSequenceController_RestoreBindings;
             foreach (var detour in _detours)
                 detour.Apply();
 
@@ -48,6 +50,7 @@ namespace ToggleableBindings.VanillaBindings
         protected override void OnRestored()
         {
             On.GGCheckBoundSoul.OnEnter -= GGCheckBoundSoul_OnEnter;
+            IL.BossSequenceController.RestoreBindings -= BossSequenceController_RestoreBindings;
             foreach (var detour in _detours)
                 detour.Undo();
 
@@ -78,9 +81,21 @@ namespace ToggleableBindings.VanillaBindings
 
             var gm = GameManager.instance;
             yield return new WaitWhile(() => !gm.soulOrb_fsm);
-            gm.soulOrb_fsm.SendEvent(MPLoseEvent);
 
+            gm.soulOrb_fsm.SendEvent(MPLoseEvent);
             EventRegister.SendEvent(UnbindVesselOrbEvent);
+        }
+
+        private void BossSequenceController_RestoreBindings(ILContext il)
+        {
+            ILCursor c = new(il);
+
+            c.GotoNext
+            (
+                i => i.MatchLdstr(UnbindVesselOrbEvent),
+                i => i.MatchCall(typeof(EventRegister), nameof(EventRegister.SendEvent))
+            );
+            c.RemoveRange(2);
         }
 
         private void GGCheckBoundSoul_OnEnter(On.GGCheckBoundSoul.orig_OnEnter orig, GGCheckBoundSoul self)
