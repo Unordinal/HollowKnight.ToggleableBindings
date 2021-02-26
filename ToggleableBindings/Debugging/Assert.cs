@@ -65,14 +65,14 @@ namespace ToggleableBindings.Debugging
 
         public static void IsNull([MaybeNull] object? value, string? message = null, params object[] parameters)
         {
-            if (value != null || (value is Object unityObject && unityObject != null))
+            if (!ObjectIsFakeOrRealNull(value))
                 HandleFail("Assert.IsNull", message, parameters);
         }
 
 #pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
         public static void IsNotNull([NotNull] object? value, string? message = null, params object[] parameters)
         {
-            if (value == null || (value is Object unityObject && unityObject == null))
+            if (ObjectIsFakeOrRealNull(value))
                 HandleFail("Assert.IsNotNull", message, parameters);
         }
 #pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
@@ -105,6 +105,14 @@ namespace ToggleableBindings.Debugging
                 return inputStr;
 
             return inputStr.Replace("\0", "\\0");
+        }
+
+        private static bool ObjectIsFakeOrRealNull(object? value)
+        {
+            if ((value is Object unityObject && unityObject == null) || value == null)
+                return true;
+
+            return false;
         }
     }
 }
