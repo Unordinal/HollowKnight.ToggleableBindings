@@ -1,17 +1,19 @@
 ﻿#nullable enable
 
+using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using ToggleableBindings.Debugging.Exceptions;
-using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace ToggleableBindings.Debugging
 {
     public static class Assert
     {
-        private const string AssertionFailed = "{0} failed.";
+        private const string AssertionFailed = "{0} failed. {1}";
         private const string EqualFailMsg = "{0} Expected: <{1}>. Actual: <{2}>.";
+        private const string SameGivenValues = "Do not pass value types to AreSame(). Values converted to Object will never be the same. Consider using AreEqual(). {0}";
 
         [Conditional("DEBUG")]
         public static void IsTrue([DoesNotReturnIf(false)] bool condition, string? message = null, params object[] parameters)
@@ -25,6 +27,33 @@ namespace ToggleableBindings.Debugging
         {
             if (condition)
                 HandleFail("Assert.IsFalse", message, parameters);
+        }
+
+        [Conditional("DEBUG")]
+        public static void AreSame(object? expected, object? actual, string? message = null, params object[] parameters)
+        {
+            if (!ReferenceEquals(expected, actual))
+            {
+                string? finalMessage = message;
+                if (expected is ValueType && actual is ValueType)
+                {
+                    finalMessage = string.Format
+                    (
+                        CultureInfo.CurrentCulture,
+                        SameGivenValues,
+                        message != null ? ReplaceNulls(message) : string.Empty
+                    );
+                }
+
+                HandleFail("Assert.AreSame", finalMessage, parameters);
+            }
+        }
+
+        [Conditional("DEBUG")]
+        public static void AreNotSame(object? expected, object? actual, string? message = null, params object[] parameters)
+        {
+            if (ReferenceEquals(expected, actual))
+                HandleFail("Assert.AreNotSame", message, parameters);
         }
 
         [Conditional("DEBUG")]
@@ -63,6 +92,7 @@ namespace ToggleableBindings.Debugging
             }
         }
 
+        [Conditional("DEBUG")]
         public static void IsNull([MaybeNull] object? value, string? message = null, params object[] parameters)
         {
             if (!ObjectIsFakeOrRealNull(value))
@@ -70,11 +100,14 @@ namespace ToggleableBindings.Debugging
         }
 
 #pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
+
+        [Conditional("DEBUG")]
         public static void IsNotNull([NotNull] object? value, string? message = null, params object[] parameters)
         {
             if (ObjectIsFakeOrRealNull(value))
                 HandleFail("Assert.IsNotNull", message, parameters);
         }
+
 #pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
 
         private static void HandleFail(string assertName, string? message, params object[] parameters)
