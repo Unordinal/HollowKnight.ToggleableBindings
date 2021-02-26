@@ -12,16 +12,16 @@ namespace ToggleableBindings.Utility
 
         private static GameObject Container
         {
-            get => _container != null 
-                ? _container 
-                : _container = CreateInternal($"{nameof(ToggleableBindings)}::{nameof(Container)}");
+            get => _container != null
+                ? _container
+                : _container = CreateInternal($"{nameof(ToggleableBindings)}::{nameof(Container)}", InstanceFlags.Default, false);
         }
 
         private static GameObject DDOLContainer
         {
-            get => _ddolContainer != null 
-                ? _ddolContainer 
-                : _ddolContainer = CreateInternal($"{nameof(ToggleableBindings)}::{nameof(DDOLContainer)}", InstanceFlags.DontDestroyOnLoad);
+            get => _ddolContainer != null
+                ? _ddolContainer
+                : _ddolContainer = CreateInternal($"{nameof(ToggleableBindings)}::{nameof(DDOLContainer)}", InstanceFlags.DontDestroyOnLoad, false);
         }
 
         public static GameObject Create(string? name, InstanceFlags instanceFlags = InstanceFlags.Default)
@@ -66,34 +66,30 @@ namespace ToggleableBindings.Utility
             return instance;
         }
 
-        private static void ApplyInstanceFlags(GameObject target, GameObject? parent, InstanceFlags instanceFlags)
+        private static void ApplyInstanceFlags(GameObject target, GameObject? parent, InstanceFlags instanceFlags, bool useContainer = true)
         {
             bool startInactive = (instanceFlags & InstanceFlags.StartInactive) != 0;
             bool dontDestroyOnLoad = (instanceFlags & InstanceFlags.DontDestroyOnLoad) != 0;
             bool worldPositionDoesNotStay = (instanceFlags & InstanceFlags.WorldPositionDoesNotStay) != 0;
 
-            target.SetActive(!startInactive);
+            if (startInactive)
+                target.SetActive(false);
+
             if (dontDestroyOnLoad)
                 Object.DontDestroyOnLoad(target);
 
-            GameObject container;
-            if (parent)
-                container = parent!;
-            else
-                container = dontDestroyOnLoad ? DDOLContainer : Container;
+            if (parent == null && useContainer)
+                parent = dontDestroyOnLoad ? DDOLContainer : Container;
 
-            target.SetParent(container, !worldPositionDoesNotStay);
+            if (parent != null)
+                target.SetParent(parent, !worldPositionDoesNotStay);
         }
 
-        private static GameObject CreateInternal(string? name, InstanceFlags instanceFlags = InstanceFlags.Default)
+        private static GameObject CreateInternal(string? name, InstanceFlags instanceFlags = InstanceFlags.Default, bool useContainer = true)
         {
             var output = new GameObject(name);
 
-            if ((instanceFlags & InstanceFlags.StartInactive) != 0)
-                output.SetActive(false);
-
-            if ((instanceFlags & InstanceFlags.DontDestroyOnLoad) != 0)
-                Object.DontDestroyOnLoad(output);
+            ApplyInstanceFlags(output, null, instanceFlags, useContainer);
 
             return output;
         }
