@@ -48,7 +48,7 @@ namespace ToggleableBindings.Extensions
             if (!gameObject)
                 throw new ArgumentNullException(nameof(gameObject));
 
-            return gameObject.transform.Find(childPath).gameObject ?? throw new Exception("Couldn't find GameObject via path.");
+            return gameObject.transform.Find(childPath)?.gameObject ?? throw new ArgumentException($"Couldn't find GameObject via path '{childPath}'.");
         }
 
         /// <summary>
