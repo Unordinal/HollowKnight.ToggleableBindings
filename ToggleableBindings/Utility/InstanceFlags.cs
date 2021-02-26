@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using UnityEngine;
 
 namespace ToggleableBindings.Utility
 {
     /// <summary>
     /// Flags that specify settings for instantiating an object.
     /// </summary>
-    [Flags]
+    [System.Flags]
     internal enum InstanceFlags
     {
         /// <summary>
@@ -17,7 +14,7 @@ namespace ToggleableBindings.Utility
         Default = 0,
 
         /// <summary>
-        /// Call <see cref="UObject.DontDestroyOnLoad(UObject)"/> on the resulting instance.
+        /// Call <see cref="Object.DontDestroyOnLoad(Object)"/> on the resulting instance.
         /// </summary>
         DontDestroyOnLoad = 1 << 0,
 

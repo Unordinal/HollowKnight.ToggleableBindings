@@ -66,6 +66,7 @@ namespace ToggleableBindings.UI
             if (!gmi || gmi.gameState is not GameState.PLAYING and not GameState.PAUSED)
                 return;
 
+            // Separate from above null check as 'HeroController.instance' always logs an error if it's null when you try and retrieve it.
             var hci = HeroController.instance;
             if (!hci)
                 return;

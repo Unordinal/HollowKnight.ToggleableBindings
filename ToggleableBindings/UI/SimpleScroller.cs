@@ -2,12 +2,17 @@
 
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using ToggleableBindings.Extensions;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace ToggleableBindings.UI
 {
+    /// <summary>
+    /// Adds a simple scrolling menu by using a containing RectTransform along with a child 'content' RectTransform.
+    /// </summary>
+    [RequireComponent(typeof(RectTransform))]
     public class SimpleScroller : MonoBehaviour
     {
 
@@ -26,7 +31,7 @@ namespace ToggleableBindings.UI
         private void Awake()
         {
             _scrollTransform = GetComponent<RectTransform>();
-            _tweenArgs = new Hashtable
+            _tweenArgs = new()
             {
                 ["name"] = nameof(SimpleScroller),
                 ["time"] = 0.15f,
@@ -49,8 +54,8 @@ namespace ToggleableBindings.UI
             var selectedTransform = (RectTransform)selected.transform;
 
             // The position of the selected UI element is the anchor position -
-            // which is the local position within the RectTransform + its height
-            // if scrolling down.
+            // which is the local position within the RectTransform - its height
+            // divided by 2 if scrolling down.
             float selectedPosY = Mathf.Abs(selectedTransform.anchoredPosition.y) - (selectedTransform.rect.height / 2);
 
             // The upper bound of the scrolling content.
@@ -58,7 +63,7 @@ namespace ToggleableBindings.UI
             // The lower bound of the scrolling content.
             float scrollMaxY = _content.anchoredPosition.y + _scrollTransform.rect.height;
 
-            // Selected position is below the lower bound of the content.
+            // Selected position + selected object's height is below the lower bound of the content.
             if (selectedPosY + selectedTransform.rect.height > scrollMaxY)
             {
                 selectedPosY -= _scrollTransform.rect.height - selectedTransform.rect.height;
@@ -77,7 +82,7 @@ namespace ToggleableBindings.UI
 
         private void ScrollTo(Vector2 targetPos)
         {
-            iTween.StopByName(_tweenArgs["name"].ToString());
+            iTween.StopByName((string)_tweenArgs["name"]);
 
             _tweenArgs["from"] = _content.anchoredPosition;
             _tweenArgs["to"] = targetPos;
