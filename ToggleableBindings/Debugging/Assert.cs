@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using ToggleableBindings.Debugging.Exceptions;
+using ToggleableBindings.Extensions;
 using Object = UnityEngine.Object;
 
 namespace ToggleableBindings.Debugging
@@ -95,7 +96,7 @@ namespace ToggleableBindings.Debugging
         [Conditional("DEBUG")]
         public static void IsNull([MaybeNull] object? value, string? message = null, params object[] parameters)
         {
-            if (!ObjectIsFakeOrRealNull(value))
+            if (!IsFakeOrRealNull(value))
                 HandleFail("Assert.IsNull", message, parameters);
         }
 
@@ -104,11 +105,19 @@ namespace ToggleableBindings.Debugging
         [Conditional("DEBUG")]
         public static void IsNotNull([NotNull] object? value, string? message = null, params object[] parameters)
         {
-            if (ObjectIsFakeOrRealNull(value))
+            if (IsFakeOrRealNull(value))
                 HandleFail("Assert.IsNotNull", message, parameters);
         }
 
 #pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
+
+        public static bool IsFakeOrRealNull(object? value)
+        {
+            if ((value is Object unityObject && unityObject == null) || value == null)
+                return true;
+
+            return false;
+        }
 
         private static void HandleFail(string assertName, string? message, params object[] parameters)
         {
@@ -138,14 +147,6 @@ namespace ToggleableBindings.Debugging
                 return inputStr;
 
             return inputStr.Replace("\0", "\\0");
-        }
-
-        private static bool ObjectIsFakeOrRealNull(object? value)
-        {
-            if ((value is Object unityObject && unityObject == null) || value == null)
-                return true;
-
-            return false;
         }
     }
 }

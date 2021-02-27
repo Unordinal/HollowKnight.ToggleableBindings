@@ -1,9 +1,11 @@
 ﻿#nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using GlobalEnums;
 using ToggleableBindings.Debugging;
+using ToggleableBindings.Extensions;
 using ToggleableBindings.Utility;
 using UnityEngine;
 
@@ -16,9 +18,23 @@ namespace ToggleableBindings.UI
         private static GameObject _container = null!;
 
         private BindingsUI _bindingsUI = null!;
-        private tk2dSpriteAnimator _spriteAnimator = null!;
 
-        private tk2dSpriteAnimator SpriteAnimator => _spriteAnimator = _spriteAnimator != null ? _spriteAnimator : _spriteAnimator = HeroController.instance?.GetComponent<tk2dSpriteAnimator>()!;
+        private tk2dSpriteAnimator? _heroAnimator;
+
+        private tk2dSpriteAnimator HeroAnimator
+        {
+            get
+            {
+                if (_heroAnimator != null)
+                    return _heroAnimator;
+
+                var hci = HeroController.instance;
+                if (hci == null)
+                    throw new InvalidOperationException("HeroController is null!");
+
+                return _heroAnimator = hci.GetComponent<tk2dSpriteAnimator>();
+            }
+        }
 
         public BindingsUIController()
         {
@@ -66,12 +82,12 @@ namespace ToggleableBindings.UI
         private void Update()
         {
             var gmi = GameManager.instance;
-            if (!gmi || gmi.gameState is not GameState.PLAYING and not GameState.PAUSED)
+            if (gmi == null || gmi.gameState is not GameState.PLAYING and not GameState.PAUSED)
                 return;
 
             // Separate from above null check as 'HeroController.instance' always logs an error if it's null when you try and retrieve it.
             var hci = HeroController.instance;
-            if (!hci)
+            if (hci == null)
                 return;
 
             if (hci.CanTalk())
@@ -98,8 +114,8 @@ namespace ToggleableBindings.UI
             pdi.SetBool("disablePause", true);
             hci.RelinquishControl();
             hci.StopAnimationControl();
-            SpriteAnimator.Play("Map Open");
-            SpriteAnimator.AnimationCompleted = (_, _) => SpriteAnimator.Play("Map Idle");
+            HeroAnimator.Play("Map Open");
+            HeroAnimator.AnimationCompleted = (_, _) => HeroAnimator.Play("Map Idle");
 
             _bindingsUI.Show();
         }
@@ -108,8 +124,8 @@ namespace ToggleableBindings.UI
         {
             if (HeroController.instance)
             {
-                SpriteAnimator.Play("Map Away");
-                SpriteAnimator.AnimationCompleted = (_, _) => Hide();
+                HeroAnimator.Play("Map Away");
+                HeroAnimator.AnimationCompleted = (_, _) => Hide();
             }
             else
                 Hide();
@@ -122,7 +138,8 @@ namespace ToggleableBindings.UI
                 pdi.SetBool("disablePause", false);
 
             var hci = HeroController.instance;
-            if (hci)
+            var gmi = GameManager.instance;
+            if (hci && gmi && gmi.GetPlayerDataBool("atBench") == false)
             {
                 hci.RegainControl();
                 hci.StartAnimationControl();
