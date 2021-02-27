@@ -1,8 +1,8 @@
 ﻿#nullable enable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using TMPro;
+using ToggleableBindings.Debugging;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.Utility;
 using UnityEngine;
@@ -22,49 +22,67 @@ namespace ToggleableBindings.UI
 
         public bool IsSelected { get; private set; }
 
+        [SerializeField]
         private Text _title = null!;
 
+        [SerializeField]
         private Image _bindingImage = null!;
-        private Sprite? _defaultSprite;
-        private Sprite? _selectedSprite;
 
-        private Animator _iconAnimator = null!;
-        private Animator _chainAnimator = null!;
+        [SerializeField]
+        private Sprite? _defaultSprite, _selectedSprite;
 
+        [SerializeField]
+        private Animator _iconAnimator, _chainAnimator = null!;
+
+        [SerializeField]
         private AudioSource _audioSource = null!;
-        private AudioEvent _selectedSound;
-        private AudioEvent _deselectedSound;
 
+        [SerializeField]
+        private AudioEvent _selectedSound, _deselectedSound;
+
+        /// <summary>
+        /// Creates the prefab for this object.
+        /// </summary>
         static BindingsUIBindingButton()
         {
-            var tempInstance = ObjectFactory.Instantiate(BaseGamePrefabs.NailButton);
-            tempInstance.RemoveComponent<BossDoorChallengeUIBindingButton>();
-            tempInstance.AddComponent<BindingsUIBindingButton>();
-            tempInstance.AddComponent<AudioSource>();
+            // Instantiate template prefab
+            var baseGO = ObjectFactory.Instantiate(BaseGamePrefabs.NailButton);
 
-            var bindingTextGO = tempInstance.FindChild("Text");
-            bindingTextGO.RemoveComponent<AutoLocalizeTextUI>();
+            // Find children
+            var textGO = baseGO.FindChild("Text");
+            var imageGO = baseGO.FindChild("Image");
+            var chainAnimGO = baseGO.FindChild("Chain_Anim");
 
-            var bindingText = bindingTextGO.GetComponent<Text>();
-            bindingText.text = "<Binding Name>";
+            // Assert
+            Assert.IsNotNull(textGO);
+            Assert.IsNotNull(imageGO);
+            Assert.IsNotNull(chainAnimGO);
 
-            Prefab = new FakePrefab(tempInstance, nameof(BindingsUIBindingButton));
-            DestroyImmediate(tempInstance, true);
+            // Remove components
+            textGO.RemoveComponent<AutoLocalizeTextUI>();
+            baseGO.RemoveComponent<BossDoorChallengeUIBindingButton>();
+
+            // Add components
+            var audioSource = baseGO.AddComponent<AudioSource>();
+            var button = baseGO.AddComponent<BindingsUIBindingButton>();
+
+            // Initialize variables
+            button._audioSource = audioSource;
+
+            button._title = textGO.GetComponent<Text>();
+            button._title.text = "???";
+
+            button._bindingImage = imageGO.GetComponent<Image>();
+            button._iconAnimator = imageGO.GetComponent<Animator>();
+            button._chainAnimator = chainAnimGO.GetComponent<Animator>();
+
+            // Create prefab and destroy temporary object
+            Prefab = new FakePrefab(baseGO, nameof(BindingsUIBindingButton));
+            DestroyImmediate(baseGO, true);
         }
 
         private void Awake()
         {
-            var chainAnimGO = gameObject.FindChild("Chain_Anim");
-            var imageGO = gameObject.FindChild("Image");
-            var textGO = gameObject.FindChild("Text");
-
-            _audioSource = GetComponent<AudioSource>();
-            _bindingImage = imageGO.GetComponent<Image>();
-            _chainAnimator = chainAnimGO.GetComponent<Animator>();
-            _iconAnimator = imageGO.GetComponent<Animator>();
-            _title = textGO.GetComponent<Text>();
-            _bindingImage.sprite = _defaultSprite;
-
             GetComponent<MenuButton>().DontPlaySelectSound = true;
         }
 
@@ -118,8 +136,8 @@ namespace ToggleableBindings.UI
 
         public void OnSubmit(BaseEventData eventData)
         {
-            var canBeApplied = ToggleableBindings.EnforceBindingRestrictions 
-                ? (Binding?.CanBeApplied() ?? false) 
+            var canBeApplied = ToggleableBindings.EnforceBindingRestrictions
+                ? (Binding?.CanBeApplied() ?? false)
                 : true;
 
             if (canBeApplied.Value)
