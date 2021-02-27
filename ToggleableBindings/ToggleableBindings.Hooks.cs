@@ -48,9 +48,10 @@ namespace ToggleableBindings
 
             /*if (Input.GetKeyDown(KeyCode.G))
             {
-                
-            }
-            if (Input.GetKeyDown(KeyCode.H))
+
+            }*/
+
+            /*if (Input.GetKeyDown(KeyCode.H))
             {
                 if (!BindingManager.TryGetBinding<NailBinding>(out var binding))
                     return;
