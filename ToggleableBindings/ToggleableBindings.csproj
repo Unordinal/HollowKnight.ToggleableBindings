@@ -106,7 +106,6 @@
     <Compile Include="Collections\ReadOnlyCollection.cs" />
     <Compile Include="Collections\ReadOnlyDictionary.cs" />
     <Compile Include="Collections\ReadOnlyList.cs" />
-    <Compile Include="Collections\NonNullArray.cs" />
     <Compile Include="CustomPrefabs.cs" />
     <Compile Include="Debugging\Assert.cs" />
     <Compile Include="Debugging\Exceptions\AssertFailedException.cs" />
