@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using GlobalEnums;
 using ToggleableBindings.Debugging;
-using ToggleableBindings.Extensions;
 using ToggleableBindings.Utility;
 using UnityEngine;
 
@@ -17,7 +16,7 @@ namespace ToggleableBindings.UI
 
         private static GameObject _container = null!;
 
-        private BindingsUI _bindingsUI = null!;
+        private BindingsUI? _bindingsUI = null;
 
         private tk2dSpriteAnimator? _heroAnimator;
 
@@ -56,60 +55,51 @@ namespace ToggleableBindings.UI
 
         internal static void Unload()
         {
-            Instance._bindingsUI.Hide();
+            if (Instance._bindingsUI != null)
+                Instance._bindingsUI.Hide();
+
             Destroy(_container);
             Instance = null;
         }
 
-        private void Awake()
-        {
-            Assert.IsNotNull(_container);
-
-            var bindingsUIGO = ObjectFactory.Instantiate(BindingsUI.Prefab, _container);
-            bindingsUIGO.name = nameof(BindingsUI);
-
-            _bindingsUI = bindingsUIGO.GetComponent<BindingsUI>();
-            _bindingsUI.Hide();
-            _bindingsUI.Applied += Applied;
-            _bindingsUI.Hidden += StartHide;
-        }
-
-        private void Applied(IEnumerable<Binding> selectedBindings)
-        {
-            BindingManager.SetActiveBindings(selectedBindings);
-        }
-
         private void Update()
+        {
+            if (CanOpenMenu())
+                SetupAndOpenMenu();
+        }
+
+        private bool CanOpenMenu()
         {
             var gmi = GameManager.instance;
             if (gmi == null || gmi.gameState is not GameState.PLAYING and not GameState.PAUSED)
-                return;
+                return false;
 
             // Separate from above null check as 'HeroController.instance' always logs an error if it's null when you try and retrieve it.
             var hci = HeroController.instance;
             if (hci == null)
-                return;
+                return false;
 
             if (hci.CanTalk())
             {
                 var inputActions = gmi.inputHandler.inputActions;
                 if (inputActions.down.IsPressed && inputActions.superDash.IsPressed)
-                {
-                    ToggleableBindings.Instance.LogDebug("Opened BindingsUI.");
-                    _bindingsUI.Setup(BindingManager.RegisteredBindings.Values);
-                    Show();
-                }
+                    return true;
             }
+
+            return false;
         }
 
-        private void Show()
+        private void SetupAndOpenMenu()
         {
-            Assert.IsNotNull(_bindingsUI);
+            ToggleableBindings.Instance.LogDebug("Opening BindingsUI...");
 
-            var pdi = PlayerData.instance;
             var hci = HeroController.instance;
-            if (pdi == null || hci == null)
-                return;
+            if (hci == null)
+                throw new InvalidOperationException("Tried to open the BindingsUI when there is no instance of HeroController!");
+
+            var pdi = hci.playerData;
+            if (pdi == null)
+                throw new InvalidOperationException("Tried to open the BindingsUI when there is no instance of PlayerData!");
 
             pdi.SetBool("disablePause", true);
             hci.RelinquishControl();
@@ -117,21 +107,30 @@ namespace ToggleableBindings.UI
             HeroAnimator.Play("Map Open");
             HeroAnimator.AnimationCompleted = (_, _) => HeroAnimator.Play("Map Idle");
 
+            if (_bindingsUI == null)
+                CreateUI();
+
+            _bindingsUI.Setup(BindingManager.RegisteredBindings.Values);
             _bindingsUI.Show();
         }
 
-        private void StartHide()
+        private void OnApplied(IEnumerable<Binding> selectedBindings)
+        {
+            BindingManager.SetActiveBindings(selectedBindings);
+        }
+
+        private void OnHidden()
         {
             if (HeroController.instance)
             {
                 HeroAnimator.Play("Map Away");
-                HeroAnimator.AnimationCompleted = (_, _) => Hide();
+                HeroAnimator.AnimationCompleted = (_, _) => AfterOnHidden();
             }
             else
-                Hide();
+                AfterOnHidden();
         }
 
-        private void Hide()
+        private void AfterOnHidden()
         {
             var pdi = PlayerData.instance;
             if (pdi != null)
@@ -145,6 +144,19 @@ namespace ToggleableBindings.UI
                 hci.StartAnimationControl();
                 hci.PreventCastByDialogueEnd();
             }
+        }
+
+        [MemberNotNull(nameof(_bindingsUI))]
+        private void CreateUI()
+        {
+            var bindingsUIGO = ObjectFactory.Instantiate(BindingsUI.Prefab);
+            bindingsUIGO.name = nameof(BindingsUI);
+
+            _bindingsUI = bindingsUIGO.GetComponent<BindingsUI>();
+            _bindingsUI.Applied += OnApplied;
+            _bindingsUI.Hidden += OnHidden;
+
+            bindingsUIGO.SetActive(false);
         }
     }
 }

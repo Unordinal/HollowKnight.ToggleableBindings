@@ -18,7 +18,6 @@ namespace ToggleableBindings.UI
         internal static FakePrefab Prefab { get; }
 
         public event Action<IEnumerable<Binding>>? Applied;
-        public event Action? BeforeHidden;
         public event Action? Hidden;
 
         private Animator _animator = null!;
@@ -124,7 +123,7 @@ namespace ToggleableBindings.UI
             foreach (var binding in bindings)
             {
                 var bindingUIButtonGO = ObjectFactory.Instantiate(BindingsUIBindingButton.Prefab);
-                bindingUIButtonGO.name = nameof(BindingsUI) + "::" + binding.Name + "Button";
+                bindingUIButtonGO.name = nameof(BindingsUI) + "::[" + binding.ID + "Button]";
                 bindingUIButtonGO.SetParent(_buttonsContent, false);
 
                 var bindingUIButton = bindingUIButtonGO.GetComponent<BindingsUIBindingButton>();
@@ -186,8 +185,6 @@ namespace ToggleableBindings.UI
 
         public void Hide()
         {
-            BeforeHidden?.Invoke();
-
             GameObject? selected = EventSystem.current.currentSelectedGameObject;
             if (selected != null)
             {
@@ -196,10 +193,10 @@ namespace ToggleableBindings.UI
                     menuButton.ForceDeselect();
             }
 
-            StartCoroutine(HideSequence(true));
+            StartCoroutine(HideSequence());
         }
 
-        private IEnumerator HideSequence(bool sendEvent)
+        private IEnumerator HideSequence()
         {
             if (_animator != null)
             {
@@ -208,8 +205,7 @@ namespace ToggleableBindings.UI
                 yield return new WaitForSeconds(_animator.GetCurrentAnimatorStateInfo(0).length);
             }
 
-            if (sendEvent)
-                Hidden?.Invoke();
+            Hidden?.Invoke();
 
             FSMUtility.SendEventToGameObject(GameCameras.instance.hudCanvas, "IN");
             gameObject.SetActive(false);
