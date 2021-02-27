@@ -7,8 +7,7 @@ using ToggleableBindings.UI;
 using ToggleableBindings.VanillaBindings;
 using UnityEngine;
 using Vasi;
-
-using UObject = UnityEngine.Object;
+using Object = UnityEngine.Object;
 
 namespace ToggleableBindings
 {
@@ -46,54 +45,9 @@ namespace ToggleableBindings
         {
             orig(self);
 
-            /*if (Input.GetKeyDown(KeyCode.G))
+            if (Input.GetKeyDown(KeyCode.G))
             {
-
-            }*/
-
-            /*if (Input.GetKeyDown(KeyCode.H))
-            {
-                if (!BindingManager.TryGetBinding<NailBinding>(out var binding))
-                    return;
-
-                if (binding.IsApplied)
-                    binding.Restore();
-                else
-                    binding.Apply();
             }
-
-            if (Input.GetKeyDown(KeyCode.J))
-            {
-                if (!BindingManager.TryGetBinding<ShellBinding>(out var binding))
-                    return;
-
-                if (binding.IsApplied)
-                    binding.Restore();
-                else
-                    binding.Apply();
-            }
-
-            if (Input.GetKeyDown(KeyCode.K))
-            {
-                if (!BindingManager.TryGetBinding<SoulBinding>(out var binding))
-                    return;
-
-                if (binding.IsApplied)
-                    binding.Restore();
-                else
-                    binding.Apply();
-            }
-
-            if (Input.GetKeyDown(KeyCode.L))
-            {
-                if (!BindingManager.TryGetBinding<CharmsBinding>(out var binding))
-                    return;
-
-                if (binding.IsApplied)
-                    binding.Restore();
-                else
-                    binding.Apply();
-            }*/
         }
     }
 }
