@@ -243,7 +243,7 @@ namespace ToggleableBindings
 
         private static void OnBindingRegistered(Binding binding)
         {
-            TB.Instance.LogDebug($"Registered binding '{binding.Name}'.");
+            TB.Instance.LogDebug($"Registered binding '{binding.ID}'.");
             BindingRegistered?.Invoke(binding);
         }
 
@@ -335,7 +335,7 @@ namespace ToggleableBindings
 
         private static void OnBindingDeregistered(Binding binding)
         {
-            TB.Instance.LogDebug($"Deregistered binding '{binding.Name}'.");
+            TB.Instance.LogDebug($"Deregistered binding '{binding.ID}'.");
             BindingDeregistered?.Invoke(binding);
         }
 
@@ -486,7 +486,7 @@ namespace ToggleableBindings
 
         private static void OnBindingApplied(Binding binding)
         {
-            TB.Instance.LogDebug($"Applied binding '{binding.Name}'.");
+            TB.Instance.LogDebug($"Applied binding '{binding.ID}'.");
             BindingApplied?.Invoke(binding);
         }
 
@@ -543,7 +543,7 @@ namespace ToggleableBindings
 
         private static void OnBindingRestored(Binding binding)
         {
-            TB.Instance.LogDebug($"Restored binding '{binding.Name}'.");
+            TB.Instance.LogDebug($"Restored binding '{binding.ID}'.");
             BindingRestored?.Invoke(binding);
         }
 
