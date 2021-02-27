@@ -64,6 +64,8 @@ namespace ToggleableBindings.UI
             _iconAnimator = imageGO.GetComponent<Animator>();
             _title = textGO.GetComponent<Text>();
             _bindingImage.sprite = _defaultSprite;
+
+            GetComponent<MenuButton>().DontPlaySelectSound = true;
         }
 
         private void Start()
@@ -80,8 +82,8 @@ namespace ToggleableBindings.UI
         public void Setup(Binding binding)
         {
             Binding = binding ?? throw new ArgumentNullException(nameof(binding));
-            _defaultSprite = binding.DefaultSprite;
-            _selectedSprite = binding.SelectedSprite;
+            _defaultSprite = binding.DefaultSprite != null ? binding.DefaultSprite : Binding.UnknownDefault;
+            _selectedSprite = binding.SelectedSprite != null ? binding.SelectedSprite : Binding.UnknownSelected;
             _title.text = binding.Name.ToUpper();
 
             IsSelected = binding.IsApplied;

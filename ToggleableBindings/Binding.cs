@@ -2,7 +2,6 @@
 
 using System;
 using System.Runtime.Serialization;
-using GlobalEnums;
 using Newtonsoft.Json;
 using ToggleableBindings.Utility;
 using ToggleableBindings.VanillaBindings;
@@ -22,6 +21,10 @@ namespace ToggleableBindings
     [JsonObject(MemberSerialization.OptIn)]
     public abstract class Binding
     {
+        internal static Sprite UnknownDefault => EmbeddedAssetLoader.UnknownBindingDefault;
+
+        internal static Sprite UnknownSelected => EmbeddedAssetLoader.UnknownBindingSelected;
+
         private const string MustBeNearBench = "Must be near a bench to {0} this binding."; // {0} = 'apply', 'restore'
 
         /// <summary>
@@ -59,13 +62,17 @@ namespace ToggleableBindings
 
         /// <summary>
         /// Gets the sprite used for the binding button's default state in the UI.
+        /// <br/>
+        /// If <see langword="null"/>, uses a default placeholder.
         /// </summary>
-        public abstract Sprite? DefaultSprite { get; }
+        public virtual Sprite? DefaultSprite { get; protected set; }
 
         /// <summary>
         /// Gets the sprite used for the binding button's selected state in the UI.
+        /// <br/>
+        /// If <see langword="null"/>, uses a default placeholder.
         /// </summary>
-        public abstract Sprite? SelectedSprite { get; }
+        public virtual Sprite? SelectedSprite { get; protected set; }
 
         /// <summary>
         /// Gets whether this binding was applied when a save was saved. Can be used to adjust
