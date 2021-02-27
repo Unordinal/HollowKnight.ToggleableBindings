@@ -149,11 +149,11 @@ namespace ToggleableBindings.HKQuickSettings
             ModName = modName;
 
             _owningAssembly ??= Assembly.GetCallingAssembly();
-            FindDefinedSettings();
+            RegisterDefinedSettings();
             LoadGlobalSettings();
             AddHooks();
 
-            if (GameManager.instance?.gameState is GameState.PLAYING or GameState.PAUSED)
+            if (GameManager.instance && GameManager.instance.gameState is GameState.PLAYING or GameState.PAUSED)
             {
                 CurrentSaveSlot = GameManager.instance.profileID;
                 LoadSaveSettings();
@@ -186,7 +186,7 @@ namespace ToggleableBindings.HKQuickSettings
         public void AddSetting(MemberInfo member, string? settingName = null, bool isPerSave = false)
         {
             QuickSettingInfo settingInfo = new(member, settingName, isPerSave);
-            var settings = GetSettingsListFromBool(isPerSave);
+            var settings = GetSettingsList(isPerSave);
             settings.Add(settingInfo);
         }
 
@@ -221,7 +221,7 @@ namespace ToggleableBindings.HKQuickSettings
         /// <returns><see langword="true"/> if the setting was successfully found and removed; otherwise, <see langword="false"/>.</returns>
         public bool RemoveSetting(Func<QuickSettingInfo, bool> predicate, bool isPerSave)
         {
-            var settings = GetSettingsListFromBool(isPerSave);
+            var settings = GetSettingsList(isPerSave);
             int removeAt = settings.FindIndex(si => predicate(si));
             if (removeAt is -1)
                 return false;
@@ -230,7 +230,7 @@ namespace ToggleableBindings.HKQuickSettings
             return true;
         }
 
-        private void FindDefinedSettings()
+        private void RegisterDefinedSettings()
         {
             const BindingFlags memberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
 
@@ -251,7 +251,7 @@ namespace ToggleableBindings.HKQuickSettings
             }
         }
 
-        private List<QuickSettingInfo> GetSettingsListFromBool(bool isPerSave)
+        private List<QuickSettingInfo> GetSettingsList(bool isPerSave)
         {
             return !isPerSave ? _globalSettings : _saveSettings;
         }
@@ -541,8 +541,7 @@ namespace ToggleableBindings.HKQuickSettings
                 var declaringType = setting.MemberInfo.DeclaringType;
 
                 var onSerializing = declaringType.GetMethod("OnSerializing", methodFlags);
-                if (onSerializing != null)
-                    onSerializing?.Invoke(null, null);
+                onSerializing?.Invoke(null, null);
 
                 var settingData = new QuickSettingData
                 {
@@ -552,8 +551,7 @@ namespace ToggleableBindings.HKQuickSettings
                 settingsData.Add(settingData);
 
                 var onSerialized = declaringType.GetMethod("OnSerialized", methodFlags);
-                if (onSerialized != null)
-                    onSerialized?.Invoke(null, null);
+                onSerialized?.Invoke(null, null);
             }
 
             string serialized = JsonConvert.SerializeObject(settingsData, _serializerSettings);
@@ -576,14 +574,12 @@ namespace ToggleableBindings.HKQuickSettings
                         var declaringType = setting.MemberInfo.DeclaringType;
 
                         var onDeserializing = declaringType.GetMethod("OnDeserializing", methodFlags);
-                        if (onDeserializing != null)
-                            onDeserializing?.Invoke(null, null);
+                        onDeserializing?.Invoke(null, null);
 
                         setting.MemberInfo.SetMemberValue(null, value);
 
                         var onDeserialized = declaringType.GetMethod("OnDeserialized", methodFlags);
-                        if (onDeserialized != null)
-                            onDeserialized?.Invoke(null, null);
+                        onDeserialized?.Invoke(null, null);
                     }
                 }
             }
