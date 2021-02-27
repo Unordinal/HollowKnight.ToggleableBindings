@@ -16,6 +16,10 @@ namespace ToggleableBindings
 
         [NotNull] public static FakePrefab? BindingApplyMsg { get; private set; }
 
+        public static FakePrefab BindingsUI => UI.BindingsUI.Prefab;
+
+        public static FakePrefab BindingButton => BindingsUIBindingButton.Prefab;
+
         static CustomPrefabs()
         {
             BindingApplyMsg = CreateBindingApplyMsgPrefab();
