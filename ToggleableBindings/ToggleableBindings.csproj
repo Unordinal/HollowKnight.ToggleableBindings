@@ -91,11 +91,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BackportedFeatures\Index.cs" />
-    <Compile Include="BackportedFeatures\IsExternalInit.cs" />
-    <Compile Include="BackportedFeatures\Range.cs" />
-    <Compile Include="BackportedFeatures\RuntimeHelpers.cs" />
-    <Compile Include="BackportedFeatures\SkipLocalsInitAttribute.cs" />
+    <Compile Include="Backported\Index.cs" />
+    <Compile Include="Backported\IsExternalInit.cs" />
+    <Compile Include="Backported\Range.cs" />
+    <Compile Include="Backported\RuntimeHelpers.cs" />
+    <Compile Include="Backported\SkipLocalsInitAttribute.cs" />
     <Compile Include="Binding.cs" />
     <Compile Include="BindingEventHandler.cs" />
     <Compile Include="BindingManager.cs" />
