@@ -31,7 +31,7 @@ namespace ToggleableBindings.VanillaBindings
             40, // Grimmchild
         };
 
-        private static PlayMakerFSM CharmsMenuFsm
+        public static PlayMakerFSM? CharmsMenuFsm
         {
             get
             {
@@ -55,9 +55,9 @@ namespace ToggleableBindings.VanillaBindings
         private Sprite? _defaultSprite;
         private Sprite? _selectedSprite;
 
-        public override Sprite DefaultSprite => _defaultSprite ??= BaseGamePrefabs.CharmsButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
+        public override Sprite DefaultSprite => _defaultSprite = _defaultSprite != null ? _defaultSprite : _defaultSprite = BaseGamePrefabs.CharmsButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
 
-        public override Sprite SelectedSprite => _selectedSprite ??= BaseGamePrefabs.CharmsButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
+        public override Sprite SelectedSprite => _selectedSprite = _selectedSprite != null ? _selectedSprite : _selectedSprite = BaseGamePrefabs.CharmsButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
 
         public CharmsBinding() : base("Charms")
         {
@@ -67,10 +67,7 @@ namespace ToggleableBindings.VanillaBindings
                 new Hook(boundCharmsGetter, new Func<bool>(() => true), TBConstants.HookManualApply)
             };
 
-            CoroutineBuilder.New
-                .WithYield(new WaitWhile(() => !CharmsMenuFsm))
-                .WithAction(SetAllowedCharms)
-                .Start();
+            ToggleableBindings.Instance.LogDebug("CharmsBinding Ctor");
         }
 
         protected override void OnApplied()
@@ -81,16 +78,7 @@ namespace ToggleableBindings.VanillaBindings
                 detour.Apply();
 
             CoroutineController.Start(OnAppliedCoroutine());
-        }
-
-        protected override void OnRestored()
-        {
-            IL.BossSequenceController.ApplyBindings -= BossSequenceController_ApplyBindings;
-            IL.BossSequenceController.RestoreBindings -= BossSequenceController_RestoreBindings;
-            foreach (var detour in _detours)
-                detour.Undo();
-
-            CoroutineController.Start(OnRestoredCoroutine());
+            CoroutineController.Start(SetAllowedCharms());
         }
 
         private IEnumerator OnAppliedCoroutine()
@@ -98,12 +86,8 @@ namespace ToggleableBindings.VanillaBindings
             yield return new WaitWhile(() => !HeroController.instance);
 
             var equippedCharms = PlayerData.instance.equippedCharms;
-            if (!WasApplied)
-            {
-                _previousEquippedCharms = equippedCharms;
-                _wasOvercharmed = PlayerData.instance.overcharmed;
-            }
-            WasApplied = false;
+            _previousEquippedCharms = equippedCharms;
+            _wasOvercharmed = PlayerData.instance.overcharmed;
 
             // Creates a lookup where the 'true' key is an enumerable of charms that are exempt, and the 'false' key are the ones that aren't.
             // If AllowEssentialCharms is false, then no charms are exempt.
@@ -121,12 +105,16 @@ namespace ToggleableBindings.VanillaBindings
             yield return new WaitWhile(() => !EventRegister.eventRegister.ContainsKey(ShowBoundCharmsEvent));
             EventRegister.SendEvent(ShowBoundCharmsEvent);
 
-            CharmsMenuFsm?.SetState("Activate UI"); // TODO: Test
+            if (CharmsMenuFsm != null)
+                CharmsMenuFsm.SetState("Activate UI");
         }
 
-        private IEnumerator OnRestoredCoroutine()
+        protected override void OnRestored()
         {
-            yield return null;
+            IL.BossSequenceController.ApplyBindings -= BossSequenceController_ApplyBindings;
+            IL.BossSequenceController.RestoreBindings -= BossSequenceController_RestoreBindings;
+            foreach (var detour in _detours)
+                detour.Undo();
 
             ToggleCharms(PlayerData.instance.equippedCharms.ToArray(), false);
 
@@ -142,39 +130,37 @@ namespace ToggleableBindings.VanillaBindings
 
             EventRegister.SendEvent(HideBoundCharmsEvent);
 
-            CharmsMenuFsm?.SetState("Activate UI"); // TODO: Test
-
-            _previousEquippedCharms.Clear();
-            _wasOvercharmed = false;
+            if (CharmsMenuFsm != null)
+                CharmsMenuFsm.SetState("Activate UI");
         }
 
-        private void SetAllowedCharms()
+        private IEnumerator SetAllowedCharms()
         {
-            if (CharmsMenuFsm)
-            {
-                var deactivateUI = CharmsMenuFsm.GetState("Deactivate UI");
-                for (int i = 0; i < deactivateUI.Actions.Length; i++)
-                {
-                    ref var curr = ref deactivateUI.Actions[i];
-                    if (curr is GGCheckBoundCharms checkCharmsAction)
-                    {
-                        var replacementAction = new CheckBoundAndCharmIsExempt
-                        {
-                            Fsm = checkCharmsAction.Fsm,
-                            Owner = checkCharmsAction.Owner,
-                            State = checkCharmsAction.State
-                        };
+            yield return new WaitWhile(() => CharmsMenuFsm == null);
 
-                        replacementAction.FalseEvent = checkCharmsAction.trueEvent;
-                        replacementAction.Instance = this;
-                        curr = replacementAction;
-                        return;
-                    }
-                    else if (curr is CheckBoundAndCharmIsExempt cbcie)
+            var stateDeactivateUI = CharmsMenuFsm.GetState("Deactivate UI");
+            var stateActions = stateDeactivateUI.Actions;
+            for (int i = 0; i < stateActions.Length; i++)
+            {
+                var curr = stateActions[i];
+                if (curr is GGCheckBoundCharms checkBoundCharms)
+                {
+                    var replacement = new CheckCanEquipCharm
                     {
-                        cbcie.Instance = this;
-                        return;
-                    }
+                        Fsm = checkBoundCharms.Fsm,
+                        Owner = checkBoundCharms.Owner,
+                        State = checkBoundCharms.State,
+                        FalseEvent = checkBoundCharms.trueEvent,
+                        Instance = this
+                    };
+
+                    stateActions[i] = replacement;
+                    yield break;
+                }
+                else if (curr is CheckCanEquipCharm checkBoundAndCharm)
+                {
+                    checkBoundAndCharm.Instance = this;
+                    yield break;
                 }
             }
         }
@@ -213,7 +199,7 @@ namespace ToggleableBindings.VanillaBindings
             c.Emit(OpCodes.Ldc_I4_0).Remove();
         }
 
-        private class CheckBoundAndCharmIsExempt : FsmStateAction
+        private class CheckCanEquipCharm : FsmStateAction
         {
             public FsmEvent? TrueEvent;
             public FsmEvent? FalseEvent;
@@ -222,7 +208,7 @@ namespace ToggleableBindings.VanillaBindings
 
             public override void OnEnter()
             {
-                DoCheckForNecessaryCharms();
+                DoCheckCanEquipCharm();
                 Finish();
             }
 
@@ -232,31 +218,26 @@ namespace ToggleableBindings.VanillaBindings
                 FalseEvent = null;
             }
 
-            private object? DoCheckForNecessaryCharms()
+            private void DoCheckCanEquipCharm()
             {
+                FsmEvent? resultEvent = FalseEvent;
+
                 if (Instance?.IsApplied == true)
                 {
                     if (AllowEssentialCharms)
                     {
-                        var charm = Fsm.GetFsmInt("Current Item Number");
-                        if (charm != null && ExemptCharms.Contains(charm.Value))
-                            return DoEvent(TrueEvent);
+                        FsmInt charmID = Fsm.GetFsmInt("Current Item Number");
+                        if (charmID != null && ExemptCharms.Contains(charmID.Value))
+                            resultEvent = TrueEvent;
                     }
                 }
                 else
                 {
                     if (!BossSequenceController.BoundCharms)
-                        return DoEvent(TrueEvent);
+                        resultEvent = TrueEvent;
                 }
 
-                return DoEvent(FalseEvent);
-            }
-
-            // Simply because I like not including braces on my 'if's.
-            private object? DoEvent(FsmEvent? fsmEvent)
-            {
-                Fsm.Event(fsmEvent);
-                return null;
+                Fsm.Event(resultEvent);
             }
         }
     }

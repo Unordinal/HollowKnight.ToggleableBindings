@@ -2,12 +2,7 @@
 
 using System;
 using System.Collections;
-using ToggleableBindings.Extensions;
-using ToggleableBindings.UI;
-using ToggleableBindings.VanillaBindings;
 using UnityEngine;
-using Vasi;
-using Object = UnityEngine.Object;
 
 namespace ToggleableBindings
 {

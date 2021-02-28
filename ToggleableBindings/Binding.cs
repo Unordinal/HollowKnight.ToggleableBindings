@@ -203,9 +203,24 @@ namespace ToggleableBindings
         /// Executed when <see cref="Restore"/> is called only if the binding is applied.
         /// <see cref="Restored"/> is invoked after this method is called.
         /// <para>
-        /// Note: This method should be guaranteed to put the object in a 'fresh' state (as in, just initialized).
-        /// <br/>
-        /// Failure to do so may result in unexpected behavior when moving between save files.
+        /// <list type="number">
+        ///     <listheader>
+        ///         <term>IMPORTANT</term>
+        ///         <description>This method should have two guarantees:</description>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>Fresh state</term> 
+        ///         <description>This means that the binding should be put into a 'just initialized' state.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>Finish before game save</term>
+        ///         <description>
+        ///             Any work this method does that touches player data which is saved to the normal game save file should be finished before that file is saved.
+        ///             Even a single 'yield return null' coroutine will cause this to fail.
+        ///         </description>
+        ///     </item>
+        /// </list>
+        /// Failure to respect either one of these guarantees will cause issues in some circumstances.
         /// </para>
         /// </summary>
         protected abstract void OnRestored();
