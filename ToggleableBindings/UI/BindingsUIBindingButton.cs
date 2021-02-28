@@ -68,7 +68,7 @@ namespace ToggleableBindings.UI
                 button._deselectedSound = vanillaButton.deselectedSound;
 
                 button._title = textGO.GetComponent<Text>();
-                button._title.text = "???";
+                button._title.text = "??? Something went wrong! ???";
 
                 button._bindingImage = imageGO.GetComponent<Image>();
                 button._iconAnimator = imageGO.GetComponent<Animator>();
