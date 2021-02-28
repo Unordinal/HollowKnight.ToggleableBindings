@@ -14,7 +14,7 @@ namespace ToggleableBindings.Utility
         [NotNull, DisallowNull]
         private static CoroutineController? Instance { get; set; }
 
-        private static readonly Dictionary<string, IEnumerator> _idRoutines = new(25);
+        private static readonly Dictionary<string, IEnumerator> _idRoutines = new();
 
         static CoroutineController()
         {
@@ -24,11 +24,14 @@ namespace ToggleableBindings.Utility
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
-            if (!Instance)
+            if (Instance != null)
             {
-                Instance = new GameObject($"{nameof(ToggleableBindings)}::{nameof(CoroutineController)}").AddComponent<CoroutineController>();
-                DontDestroyOnLoad(Instance);
+                ToggleableBindings.Instance.LogError($"Tried to create a new {nameof(CoroutineController)} when one already exists!");
+                return;
             }
+
+            var container = ObjectFactory.Create(nameof(CoroutineController), null, InstanceFlags.DontDestroyOnLoad);
+            Instance = container.AddComponent<CoroutineController>();
         }
 
         public static Coroutine Start(IEnumerator routine)
