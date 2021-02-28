@@ -35,64 +35,60 @@ namespace ToggleableBindings.UI
         private CanvasGroup _canvasGroup = null!;
 
         private readonly List<BindingsUIBindingButton> _buttons = new();
-
+        
         static BindingsUI()
         {
-            //! Instantiate template prefab
-            var baseGO = ObjectFactory.Instantiate(BaseGamePrefabs.ChallengeDoorCanvas);
+            Prefab = FakePrefab.CreateCopy(BaseGamePrefabs.ChallengeDoorCanvas, nameof(BindingsUI), prefab =>
+            {
+                //! Find children and component vars
+                var panelGO = prefab.FindChild("Panel");
 
-            //! Find children and component vars
-            var panelGO = baseGO.FindChild("Panel");
+                Assert.IsNotNull(panelGO);
+                var beginButtonGO = panelGO.FindChild("BeginButton");
+                var buttonsGO = panelGO.FindChild("Buttons");
+                var textSuperGO = panelGO.FindChild("Title_Super_Text");
+                var textMainGO = panelGO.FindChild("Title_Main_Text");
+                var textDescGO = panelGO.FindChild("Description_Text");
 
-            Assert.IsNotNull(panelGO);
-            var beginButtonGO = panelGO.FindChild("BeginButton");
-            var buttonsGO = panelGO.FindChild("Buttons");
-            var textSuperGO = panelGO.FindChild("Title_Super_Text");
-            var textMainGO = panelGO.FindChild("Title_Main_Text");
-            var textDescGO = panelGO.FindChild("Description_Text");
+                Assert.IsNotNull(beginButtonGO);
+                var textBeginGO = beginButtonGO.FindChild("Text");
 
-            Assert.IsNotNull(beginButtonGO);
-            var textBeginGO = beginButtonGO.FindChild("Text");
+                //! Assert the rest
+                Assert.IsNotNull(buttonsGO);
+                Assert.IsNotNull(textSuperGO);
+                Assert.IsNotNull(textMainGO);
+                Assert.IsNotNull(textDescGO);
 
-            //! Assert the rest
-            Assert.IsNotNull(buttonsGO);
-            Assert.IsNotNull(textSuperGO);
-            Assert.IsNotNull(textMainGO);
-            Assert.IsNotNull(textDescGO);
+                //! Destroy unneeded objects
+                DestroyImmediate(buttonsGO, true);
 
-            //! Destroy unneeded objects
-            DestroyImmediate(buttonsGO, true);
+                //! Create additional objects
+                var scrollerGO = ObjectFactory.Instantiate(CustomPrefabs.BindingScroller, panelGO);
 
-            //! Create additional objects
-            var scrollerGO = ObjectFactory.Instantiate(CustomPrefabs.BindingScroller, panelGO);
+                //! Add components
+                beginButtonGO.AddComponent<EventPropagator>();
+                var audioSource = prefab.AddComponent<AudioSource>();
+                var bindingsUI = prefab.AddComponent<BindingsUI>();
+                var menuButtonList = prefab.AddComponent<MenuButtonList>();
 
-            //! Add components
-            beginButtonGO.AddComponent<EventPropagator>();
-            var audioSource = baseGO.AddComponent<AudioSource>();
-            var bindingsUI = baseGO.AddComponent<BindingsUI>();
-            var menuButtonList = panelGO.AddComponent<MenuButtonList>();
+                //! Set variables
+                audioSource.volume = Mathf.Clamp01(GameManager.instance.GetImplicitCinematicVolume() / 2f);
+                beginButtonGO.name = "ApplyButton";
 
-            //! Set variables
-            audioSource.volume = Mathf.Clamp01(GameManager.instance.GetImplicitCinematicVolume() / 2f);
-            beginButtonGO.name = "ApplyButton";
+                textSuperGO.GetComponent<Text>().text = nameof(ToggleableBindings);
+                textMainGO.GetComponent<Text>().text = "MENU";
+                textDescGO.GetComponent<Text>().text = "Apply and Restore Bindings";
+                textBeginGO.GetComponent<Text>().text = "APPLY";
 
-            textSuperGO.GetComponent<Text>().text = nameof(ToggleableBindings);
-            textMainGO.GetComponent<Text>().text = "MENU";
-            textDescGO.GetComponent<Text>().text = "Apply and Restore Bindings";
-            textBeginGO.GetComponent<Text>().text = "APPLY";
+                bindingsUI._applyButton = beginButtonGO.GetComponent<Selectable>();
+                bindingsUI._buttonsScroller = scrollerGO.GetComponent<SimpleScroller>();
+                bindingsUI._buttonsList = menuButtonList;
 
-            bindingsUI._applyButton = beginButtonGO.GetComponent<Selectable>();
-            bindingsUI._buttonsScroller = scrollerGO.GetComponent<SimpleScroller>();
-            bindingsUI._buttonsList = menuButtonList;
-
-            //! Remove components
-            baseGO.RemoveComponent<BossDoorChallengeUI>();
-            beginButtonGO.RemoveComponent<EventTrigger>();
-            textBeginGO.RemoveComponent<AutoLocalizeTextUI>();
-
-            //! Create prefab and destroy temporary object
-            Prefab = new FakePrefab(baseGO, nameof(BindingsUI));
-            DestroyImmediate(baseGO, true);
+                //! Remove components
+                prefab.RemoveComponent<BossDoorChallengeUI>();
+                beginButtonGO.RemoveComponent<EventTrigger>();
+                textBeginGO.RemoveComponent<AutoLocalizeTextUI>();
+            });
         }
 
         private void Awake()

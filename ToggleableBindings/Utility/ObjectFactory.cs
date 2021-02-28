@@ -1,7 +1,9 @@
 ﻿#nullable enable
 
+using System;
 using ToggleableBindings.Extensions;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace ToggleableBindings.Utility
 {
@@ -14,21 +16,19 @@ namespace ToggleableBindings.Utility
         {
             get => _container != null
                 ? _container
-                : _container = CreateInternal($"{nameof(ToggleableBindings)}::{nameof(Container)}", InstanceFlags.Default, false);
+                : _container = CreateInternal($"{nameof(ToggleableBindings)}::{nameof(Container)}", null, InstanceFlags.Default, false);
         }
 
         private static GameObject DDOLContainer
         {
             get => _ddolContainer != null
                 ? _ddolContainer
-                : _ddolContainer = CreateInternal($"{nameof(ToggleableBindings)}::{nameof(DDOLContainer)}", InstanceFlags.DontDestroyOnLoad, false);
+                : _ddolContainer = CreateInternal($"{nameof(ToggleableBindings)}::{nameof(DDOLContainer)}", null, InstanceFlags.DontDestroyOnLoad, false);
         }
 
-        public static GameObject Create(string? name, InstanceFlags instanceFlags = InstanceFlags.Default)
+        public static GameObject Create(string? name = null, GameObject? parent = null, InstanceFlags instanceFlags = InstanceFlags.Default)
         {
-            var output = CreateInternal(name, instanceFlags);
-
-            ToggleableBindings.Instance.LogDebug($"Created new object '{output.name}'");
+            var output = CreateInternal(name, parent, instanceFlags);
             return output;
         }
 
@@ -40,12 +40,11 @@ namespace ToggleableBindings.Utility
         public static GameObject Instantiate(GameObject original, GameObject? parent, InstanceFlags instanceFlags = InstanceFlags.Default)
         {
             if (!original)
-                throw new System.ArgumentNullException(nameof(original));
+                throw new ArgumentNullException(nameof(original));
 
             var clone = Object.Instantiate(original);
             ApplyInstanceFlags(clone, parent, instanceFlags);
 
-            ToggleableBindings.Instance.LogDebug($"Instantiated game object as new object '{clone.name}'");
             return clone;
         }
 
@@ -56,13 +55,12 @@ namespace ToggleableBindings.Utility
 
         public static GameObject Instantiate(FakePrefab prefab, GameObject? parent, InstanceFlags instanceFlags = InstanceFlags.Default)
         {
-            if (!prefab)
-                throw new System.ArgumentNullException(nameof(prefab));
+            if (prefab == null)
+                throw new ArgumentNullException(nameof(prefab));
 
             var instance = prefab.Instantiate();
             ApplyInstanceFlags(instance, parent, instanceFlags);
 
-            ToggleableBindings.Instance.LogDebug($"Instantiated prefab as new object '{instance.name}'");
             return instance;
         }
 
@@ -85,11 +83,11 @@ namespace ToggleableBindings.Utility
                 target.SetParent(parent, worldPositionStays);
         }
 
-        private static GameObject CreateInternal(string? name, InstanceFlags instanceFlags = InstanceFlags.Default, bool useContainer = true)
+        private static GameObject CreateInternal(string? name, GameObject? parent = null, InstanceFlags instanceFlags = InstanceFlags.Default, bool useContainer = true)
         {
             var output = new GameObject(name);
 
-            ApplyInstanceFlags(output, null, instanceFlags, useContainer);
+            ApplyInstanceFlags(output, parent, instanceFlags, useContainer);
 
             return output;
         }

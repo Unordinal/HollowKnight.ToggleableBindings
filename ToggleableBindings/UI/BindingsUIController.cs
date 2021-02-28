@@ -49,7 +49,7 @@ namespace ToggleableBindings.UI
 
         internal static void Initialize()
         {
-            _container = ObjectFactory.Create(nameof(BindingsUIController), InstanceFlags.DontDestroyOnLoad);
+            _container = ObjectFactory.Create(nameof(BindingsUIController), null, InstanceFlags.DontDestroyOnLoad);
             _container.AddComponent<BindingsUIController>();
         }
 

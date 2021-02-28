@@ -1,8 +1,11 @@
 ﻿#nullable enable
 
+using System;
 using System.Diagnostics.CodeAnalysis;
-using ToggleableBindings.Extensions;
+using ToggleableBindings.Debugging;
+using ToggleableBindings.Utility;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace ToggleableBindings
 {
@@ -51,7 +54,7 @@ namespace ToggleableBindings
         public FakePrefab(GameObject original, string? prefabName = null, bool setActive = false)
         {
             if (original == null)
-                throw new System.ArgumentNullException(nameof(original));
+                throw new ArgumentNullException(nameof(original));
 
             _prefabName = NamePrefix + (prefabName ?? original.name);
             _prefab = Object.Instantiate(original, _prefabContainer.transform);
@@ -74,6 +77,45 @@ namespace ToggleableBindings
             return output;
         }
 
-        public static implicit operator bool(FakePrefab value) => value != null;
+        /// <summary>
+        /// Creates a new prefab with the specified name and optionally initialized via <paramref name="initializer"/>.
+        /// </summary>
+        /// <param name="name">The name of the new prefab.</param>
+        /// <param name="initializer">The action to invoke on the new prefab object.</param>
+        /// <returns>A new <see cref="FakePrefab"/> with the specified name and optionally initialized using <paramref name="initializer"/>.</returns>
+        public static FakePrefab Create(string? name, Action<GameObject>? initializer)
+        {
+            var tempGO = ObjectFactory.Create("TemporaryPrefabCopy", _prefabContainer);
+
+            initializer?.Invoke(tempGO);
+
+            var output = new FakePrefab(tempGO, name);
+            Object.DestroyImmediate(tempGO, true);
+            return output;
+        }
+
+        /// <summary>
+        /// Creates a new prefab using the specified <see cref="FakePrefab"/> as a template.
+        /// <br/>
+        /// This is basically an easy way to create a prefab that's based off an existing one
+        /// without having to first instantiate it, optionally modify the instantiated game object, 
+        /// and then create a new prefab with the modified object.
+        /// </summary>
+        /// <returns>A new <see cref="FakePrefab"/> that is based off the specified prefab and was optionally initialized using <paramref name="initializer"/>.</returns>
+        /// <inheritdoc cref="Create(string?, Action{GameObject}?)"/>
+        public static FakePrefab CreateCopy(FakePrefab original, string? name, Action<GameObject>? initializer)
+        {
+            if (original == null)
+                throw new ArgumentNullException(nameof(original));
+
+            var tempGO = original.Instantiate(_prefabContainer.transform);
+            tempGO.name = "TemporaryPrefabCopy";
+
+            initializer?.Invoke(tempGO);
+
+            var output = new FakePrefab(tempGO, name);
+            Object.DestroyImmediate(tempGO, true);
+            return output;
+        }
     }
 }

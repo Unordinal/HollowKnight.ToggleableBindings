@@ -47,41 +47,37 @@ namespace ToggleableBindings.UI
         /// </summary>
         static BindingsUIBindingButton()
         {
-            //! Instantiate template prefab
-            var baseGO = ObjectFactory.Instantiate(BaseGamePrefabs.NailButton);
+            Prefab = FakePrefab.CreateCopy(BaseGamePrefabs.NailButton, nameof(BindingsUIBindingButton), prefab =>
+            {
+                //! Find children and component vars
+                var textGO = prefab.FindChild("Text");
+                var imageGO = prefab.FindChild("Image");
+                var chainAnimGO = prefab.FindChild("Chain_Anim");
 
-            //! Find children and component vars
-            var textGO = baseGO.FindChild("Text");
-            var imageGO = baseGO.FindChild("Image");
-            var chainAnimGO = baseGO.FindChild("Chain_Anim");
+                //! Assert the rest
+                Assert.IsNotNull(textGO);
+                Assert.IsNotNull(imageGO);
+                Assert.IsNotNull(chainAnimGO);
 
-            //! Assert the rest
-            Assert.IsNotNull(textGO);
-            Assert.IsNotNull(imageGO);
-            Assert.IsNotNull(chainAnimGO);
+                //! Add components
+                var button = prefab.AddComponent<BindingsUIBindingButton>();
 
-            //! Add components
-            var button = baseGO.AddComponent<BindingsUIBindingButton>();
+                //! Set variables
+                var vanillaButton = prefab.GetComponent<BossDoorChallengeUIBindingButton>();
+                button._selectedSound = vanillaButton.selectedSound;
+                button._deselectedSound = vanillaButton.deselectedSound;
 
-            //! Set variables
-            var vanillaButton = baseGO.GetComponent<BossDoorChallengeUIBindingButton>();
-            button._selectedSound = vanillaButton.selectedSound;
-            button._deselectedSound = vanillaButton.deselectedSound;
+                button._title = textGO.GetComponent<Text>();
+                button._title.text = "???";
 
-            button._title = textGO.GetComponent<Text>();
-            button._title.text = "???";
+                button._bindingImage = imageGO.GetComponent<Image>();
+                button._iconAnimator = imageGO.GetComponent<Animator>();
+                button._chainAnimator = chainAnimGO.GetComponent<Animator>();
 
-            button._bindingImage = imageGO.GetComponent<Image>();
-            button._iconAnimator = imageGO.GetComponent<Animator>();
-            button._chainAnimator = chainAnimGO.GetComponent<Animator>();
-
-            //! Remove components
-            textGO.RemoveComponent<AutoLocalizeTextUI>();
-            baseGO.RemoveComponent<BossDoorChallengeUIBindingButton>();
-
-            //! Create prefab and destroy temporary object
-            Prefab = new FakePrefab(baseGO, nameof(BindingsUIBindingButton));
-            DestroyImmediate(baseGO, true);
+                //! Remove components
+                textGO.RemoveComponent<AutoLocalizeTextUI>();
+                prefab.RemoveComponent<BossDoorChallengeUIBindingButton>();
+            });
         }
 
         private void Awake()
