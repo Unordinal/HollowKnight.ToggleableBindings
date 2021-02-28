@@ -59,6 +59,7 @@
     <Compile Include="Backported\Index.cs" />
     <Compile Include="Backported\Range.cs" />
     <Compile Include="Backported\RuntimeHelpers.cs" />
+    <Compile Include="CastBinding.cs" />
     <Compile Include="ClawBinding.cs" />
     <Compile Include="DashBinding.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

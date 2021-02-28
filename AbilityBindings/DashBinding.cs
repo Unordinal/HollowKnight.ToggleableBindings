@@ -7,10 +7,6 @@ namespace AbilityBindings
 {
     public class DashBinding : Binding
     {
-        public override Sprite? DefaultSprite { get; }
-
-        public override Sprite? SelectedSprite { get; }
-
         public DashBinding() : base("Dash") { }
 
         protected override void OnApplied()

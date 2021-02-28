@@ -7,10 +7,6 @@ namespace AbilityBindings
 {
     public class ClawBinding : Binding
     {
-        public override Sprite? DefaultSprite { get; }
-
-        public override Sprite? SelectedSprite { get; }
-
         public ClawBinding() : base("Claw") { }
 
         protected override void OnApplied()

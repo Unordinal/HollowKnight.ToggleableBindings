@@ -7,10 +7,6 @@ namespace AbilityBindings
 {
     public class SuperDashBinding : Binding
     {
-        public override Sprite? DefaultSprite { get; }
-
-        public override Sprite? SelectedSprite { get; }
-
         public SuperDashBinding() : base("Super Dash") { }
 
         protected override void OnApplied()

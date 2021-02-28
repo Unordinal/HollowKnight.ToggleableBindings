@@ -7,10 +7,6 @@ namespace AbilityBindings
 {
     public class WingsBinding : Binding
     {
-        public override Sprite? DefaultSprite { get; }
-
-        public override Sprite? SelectedSprite { get; }
-
         public WingsBinding() : base("Wings") { }
 
         protected override void OnApplied()
