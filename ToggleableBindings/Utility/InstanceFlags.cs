@@ -24,8 +24,8 @@ namespace ToggleableBindings.Utility
         StartInactive = 1 << 2,
 
         /// <summary>
-        /// If a parent is specified, the instantiated object should not keep its world position.
+        /// If a parent is specified, the instantiated object should keep its world position.
         /// </summary>
-        WorldPositionDoesNotStay = 1 << 3
+        WorldPositionStays = 1 << 3
     }
 }

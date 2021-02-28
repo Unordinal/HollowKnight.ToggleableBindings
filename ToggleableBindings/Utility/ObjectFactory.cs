@@ -70,7 +70,7 @@ namespace ToggleableBindings.Utility
         {
             bool startInactive = (instanceFlags & InstanceFlags.StartInactive) != 0;
             bool dontDestroyOnLoad = (instanceFlags & InstanceFlags.DontDestroyOnLoad) != 0;
-            bool worldPositionDoesNotStay = (instanceFlags & InstanceFlags.WorldPositionDoesNotStay) != 0;
+            bool worldPositionStays = (instanceFlags & InstanceFlags.WorldPositionStays) != 0;
 
             if (startInactive)
                 target.SetActive(false);
@@ -82,7 +82,7 @@ namespace ToggleableBindings.Utility
                 parent = dontDestroyOnLoad ? DDOLContainer : Container;
 
             if (parent != null)
-                target.SetParent(parent, !worldPositionDoesNotStay);
+                target.SetParent(parent, worldPositionStays);
         }
 
         private static GameObject CreateInternal(string? name, InstanceFlags instanceFlags = InstanceFlags.Default, bool useContainer = true)
