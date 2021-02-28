@@ -50,10 +50,10 @@ namespace ToggleableBindings
             return FakePrefab.Create(nameof(BindingScroller), prefab =>
             {
                 //! Scroller
-                prefab.AddComponent<Image>();
-                var scroller = prefab.AddComponent<SimpleScroller>();
                 var scrollerTransform = prefab.AddComponent<RectTransform>();
+                var scroller = prefab.AddComponent<SimpleScroller>();
                 var scrollerMask = prefab.AddComponent<Mask>();
+                prefab.AddComponent<Image>();
 
                 scrollerTransform.anchorMin = new Vector2(0f, 0.5f);
                 scrollerTransform.anchorMax = new Vector2(1f, 0.5f);
