@@ -562,6 +562,7 @@ namespace ToggleableBindings.HKQuickSettings
 
         private void LoadAndDeserialize(string filePath, in List<QuickSettingInfo> settings)
         {
+            const BindingFlags methodFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
             string json = File.ReadAllText(filePath);
             var jArray = JArray.Parse(json);
 
@@ -571,29 +572,15 @@ namespace ToggleableBindings.HKQuickSettings
                 var settingName = setting.Value<string>(nameof(QuickSettingData.SettingName));
                 if (settingsDict.TryGetValue(settingName, out var settingInfo))
                 {
-                    var valueToken = setting.GetValue(nameof(QuickSettingData.SettingValue));
-
-                    ToggleableBindings.Instance.LogDebug("Deserializing: '" + settingName + "'");
-
-                    const BindingFlags methodFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
                     var declaringType = settingInfo.MemberInfo.DeclaringType;
 
                     var onDeserializing = declaringType.GetMethod("OnDeserializing", methodFlags);
                     onDeserializing?.Invoke(null, null);
 
-                    object? value;
-                    if (settingInfo.MemberInfo is FieldInfo fi)
-                    {
-                        value = valueToken.ToObject(fi.FieldType, Serializer);
-                        //value = JsonConvert.DeserializeObject(valueStr, fi.FieldType, _serializerSettings);
-                        fi.SetValue(null, value);
-                    }
-                    else if (settingInfo.MemberInfo is PropertyInfo pi)
-                    {
-                        value = valueToken.ToObject(pi.PropertyType, Serializer);
-                        //value = JsonConvert.DeserializeObject(valueStr, pi.PropertyType, _serializerSettings);
-                        pi.SetValue(null, value, null);
-                    }
+                    Type memberType = settingInfo.MemberInfo.GetUnderlyingType();
+                    var valueToken = setting.GetValue(nameof(QuickSettingData.SettingValue));
+                    var memberValue = valueToken.ToObject(memberType, Serializer);
+                    settingInfo.MemberInfo.SetMemberValue(null, memberValue);
 
                     var onDeserialized = declaringType.GetMethod("OnDeserialized", methodFlags);
                     onDeserialized?.Invoke(null, null);

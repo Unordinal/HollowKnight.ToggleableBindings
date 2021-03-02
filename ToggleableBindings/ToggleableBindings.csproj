@@ -120,7 +120,9 @@
     <Compile Include="UI\EventPropagator.cs" />
     <Compile Include="UI\SelectedTemporarily.cs" />
     <Compile Include="UI\SimpleScroller.cs" />
+    <Compile Include="Utility\ArrayUtil.cs" />
     <Compile Include="Utility\EmbeddedAssetLoader.cs" />
+    <Compile Include="Utility\EnumerableUtil.cs" />
     <Compile Include="Utility\InstanceFlags.cs" />
     <Compile Include="Utility\ObjectFactory.cs" />
     <Compile Include="BaseGamePrefabs.cs" />
@@ -146,6 +148,7 @@
     <Compile Include="Utility\ResultInfo.cs" />
     <Compile Include="ToggleableBindings.cs" />
     <Compile Include="ToggleableBindings.Hooks.cs" />
+    <Compile Include="Utility\StringUtil.cs" />
     <Compile Include="Utility\TryResult.cs" />
     <Compile Include="Utility\TryResult{T}.cs" />
     <Compile Include="Utility\WaitUntilOrTimeout.cs" />

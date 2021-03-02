@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using InControl;
 using ToggleableBindings.HKQuickSettings;
+using ToggleableBindings.Utility;
 
 namespace ToggleableBindings.Input
 {
@@ -31,7 +32,7 @@ namespace ToggleableBindings.Input
         // TODO: Refactor. This is a little bit of a mess.
         public static ActionCombo? KeybindStringToCombo(string? keybindStr)
         {
-            if (keybindStr == null)
+            if (StringUtil.IsNullOrWhiteSpace(keybindStr))
                 return null;
 
             var gmi = GameManager.instance;
@@ -39,14 +40,14 @@ namespace ToggleableBindings.Input
                 throw new InvalidOperationException("GameManager instance is null!");
 
             var heroActions = gmi.inputHandler.inputActions;
-            var allActionsNoWS = heroActions.Actions.ToDictionary(a => ReplaceWhiteSpace(a.Name.ToLower()));
+            var allActionsNoWS = heroActions.Actions.ToDictionary(a => StringUtil.RemoveWhiteSpace(a.Name.ToLower()));
 
             var actionStrs = keybindStr.Split(',').Select(s => s.Trim().ToLower());
 
             List<PlayerAction> comboActions = new();
             foreach (var actionStr in actionStrs)
             {
-                var actionStrNoWS = ReplaceWhiteSpace(actionStr);
+                var actionStrNoWS = StringUtil.RemoveWhiteSpace(actionStr);
                 if (allActionsNoWS.TryGetValue(actionStrNoWS, out var playerAction))
                 {
                     comboActions.Add(playerAction);
@@ -60,13 +61,8 @@ namespace ToggleableBindings.Input
 
         public static string ComboToKeybindString(ActionCombo actionCombo)
         {
-            var actionStrs = actionCombo.Actions.Select(a => ReplaceWhiteSpace(a.Name)).ToArray();
-            return string.Join(",", actionStrs);
-        }
-
-        private static string ReplaceWhiteSpace(string value)
-        {
-            return new string(value.Where(c => !char.IsWhiteSpace(c)).ToArray());
+            var actionStrs = actionCombo.Actions.Select(a => StringUtil.RemoveWhiteSpace(a.Name));
+            return StringUtil.Join(',', actionStrs);
         }
     }
 }
