@@ -66,8 +66,6 @@ namespace ToggleableBindings.VanillaBindings
             {
                 new Hook(boundCharmsGetter, new Func<bool>(() => true), TBConstants.HookManualApply)
             };
-
-            ToggleableBindings.Instance.LogDebug("CharmsBinding Ctor");
         }
 
         protected override void OnApplied()
@@ -197,6 +195,14 @@ namespace ToggleableBindings.VanillaBindings
             );
 
             c.Emit(OpCodes.Ldc_I4_0).Remove();
+
+            c.GotoNext
+            (
+                i => i.MatchLdstr(HideBoundCharmsEvent),
+                i => i.MatchCall(typeof(EventRegister), nameof(EventRegister.SendEvent))
+            );
+
+            c.RemoveRange(2);
         }
 
         private class CheckCanEquipCharm : FsmStateAction

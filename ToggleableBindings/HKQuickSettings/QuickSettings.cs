@@ -78,6 +78,8 @@ namespace ToggleableBindings.HKQuickSettings
             Error = LogAndIgnoreSerializationBindingErrors
         };
 
+        private static JsonSerializer Serializer { get; } = JsonSerializer.Create(_serializerSettings);
+
         private Assembly? _owningAssembly;
         private string? _modName;
         private readonly List<QuickSettingInfo> _globalSettings = new();
@@ -560,28 +562,44 @@ namespace ToggleableBindings.HKQuickSettings
 
         private void LoadAndDeserialize(string filePath, in List<QuickSettingInfo> settings)
         {
-            string serialized = File.ReadAllText(filePath);
-            var settingsData = JsonConvert.DeserializeObject<List<QuickSettingData>>(serialized, _serializerSettings);
+            string json = File.ReadAllText(filePath);
+            var jArray = JArray.Parse(json);
 
-            var settingsDict = settingsData?.Where(d => d.SettingName != null).ToDictionary(d => d.SettingName, d => d.SettingValue);
-            if (settingsDict != null)
+            var settingsDict = settings.ToDictionary(s => s.Key);
+            foreach (var setting in jArray.Children<JObject>())
             {
-                foreach (var setting in settings)
+                var settingName = setting.Value<string>(nameof(QuickSettingData.SettingName));
+                if (settingsDict.TryGetValue(settingName, out var settingInfo))
                 {
-                    if (settingsDict.TryGetValue(setting.Key, out var value))
+                    var valueToken = setting.GetValue(nameof(QuickSettingData.SettingValue));
+
+                    ToggleableBindings.Instance.LogDebug("Deserializing: '" + settingName + "'");
+
+                    const BindingFlags methodFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+                    var declaringType = settingInfo.MemberInfo.DeclaringType;
+
+                    var onDeserializing = declaringType.GetMethod("OnDeserializing", methodFlags);
+                    onDeserializing?.Invoke(null, null);
+
+                    object? value;
+                    if (settingInfo.MemberInfo is FieldInfo fi)
                     {
-                        const BindingFlags methodFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-                        var declaringType = setting.MemberInfo.DeclaringType;
-
-                        var onDeserializing = declaringType.GetMethod("OnDeserializing", methodFlags);
-                        onDeserializing?.Invoke(null, null);
-
-                        setting.MemberInfo.SetMemberValue(null, value);
-
-                        var onDeserialized = declaringType.GetMethod("OnDeserialized", methodFlags);
-                        onDeserialized?.Invoke(null, null);
+                        value = valueToken.ToObject(fi.FieldType, Serializer);
+                        //value = JsonConvert.DeserializeObject(valueStr, fi.FieldType, _serializerSettings);
+                        fi.SetValue(null, value);
                     }
+                    else if (settingInfo.MemberInfo is PropertyInfo pi)
+                    {
+                        value = valueToken.ToObject(pi.PropertyType, Serializer);
+                        //value = JsonConvert.DeserializeObject(valueStr, pi.PropertyType, _serializerSettings);
+                        pi.SetValue(null, value, null);
+                    }
+
+                    var onDeserialized = declaringType.GetMethod("OnDeserialized", methodFlags);
+                    onDeserialized?.Invoke(null, null);
                 }
+                else
+                    ToggleableBindings.Instance.LogError("Couldn't find a setting with the specified key: " + settingName);
             }
         }
 

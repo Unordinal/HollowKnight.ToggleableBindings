@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using GlobalEnums;
 using ToggleableBindings.Debugging;
+using ToggleableBindings.Input;
 using ToggleableBindings.Utility;
 using UnityEngine;
 
@@ -81,8 +82,10 @@ namespace ToggleableBindings.UI
 
             if (hci.CanTalk())
             {
-                var inputActions = gmi.inputHandler.inputActions;
+                /*var inputActions = gmi.inputHandler.inputActions;
                 if (inputActions.down.IsPressed && inputActions.superDash.IsPressed)
+                    return true;*/
+                if (Keybinds.OpenBindingsUI.IsPressed)
                     return true;
             }
 

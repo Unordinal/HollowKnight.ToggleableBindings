@@ -23,9 +23,9 @@ namespace ToggleableBindings.VanillaBindings
         private Sprite? _defaultSprite;
         private Sprite? _selectedSprite;
 
-        public override Sprite DefaultSprite => _defaultSprite ??= BaseGamePrefabs.SoulButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
+        public override Sprite DefaultSprite => _defaultSprite = _defaultSprite != null ? _defaultSprite : _defaultSprite = BaseGamePrefabs.SoulButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
 
-        public override Sprite SelectedSprite => _selectedSprite ??= BaseGamePrefabs.SoulButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
+        public override Sprite SelectedSprite => _selectedSprite = _selectedSprite != null ? _selectedSprite : _selectedSprite = BaseGamePrefabs.SoulButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
 
         public SoulBinding() : base("Soul")
         {
@@ -47,16 +47,6 @@ namespace ToggleableBindings.VanillaBindings
             CoroutineController.Start(OnAppliedCoroutine());
         }
 
-        protected override void OnRestored()
-        {
-            On.GGCheckBoundSoul.OnEnter -= GGCheckBoundSoul_OnEnter;
-            IL.BossSequenceController.RestoreBindings -= BossSequenceController_RestoreBindings;
-            foreach (var detour in _detours)
-                detour.Undo();
-
-            CoroutineController.Start(OnRestoredCoroutine());
-        }
-
         private IEnumerator OnAppliedCoroutine()
         {
             yield return new WaitWhile(() => !HeroController.instance);
@@ -72,6 +62,16 @@ namespace ToggleableBindings.VanillaBindings
             gm.soulVessel_fsm.SendEvent(MPReserveDownEvent);
 
             EventRegister.SendEvent(BindVesselOrbEvent);
+        }
+
+        protected override void OnRestored()
+        {
+            On.GGCheckBoundSoul.OnEnter -= GGCheckBoundSoul_OnEnter;
+            IL.BossSequenceController.RestoreBindings -= BossSequenceController_RestoreBindings;
+            foreach (var detour in _detours)
+                detour.Undo();
+
+            CoroutineController.Start(OnRestoredCoroutine());
         }
 
         private IEnumerator OnRestoredCoroutine()

@@ -25,9 +25,9 @@ namespace ToggleableBindings.VanillaBindings
         private Sprite? _defaultSprite;
         private Sprite? _selectedSprite;
 
-        public override Sprite DefaultSprite => _defaultSprite ??= BaseGamePrefabs.NailButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
+        public override Sprite DefaultSprite => _defaultSprite = _defaultSprite != null ? _defaultSprite : _defaultSprite = BaseGamePrefabs.NailButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
 
-        public override Sprite SelectedSprite => _selectedSprite ??= BaseGamePrefabs.NailButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
+        public override Sprite SelectedSprite => _selectedSprite = _selectedSprite != null ? _selectedSprite : _selectedSprite = BaseGamePrefabs.NailButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
 
         public NailBinding() : base("Nail")
         {
@@ -50,6 +50,14 @@ namespace ToggleableBindings.VanillaBindings
             CoroutineController.Start(OnAppliedCoroutine());
         }
 
+        private IEnumerator OnAppliedCoroutine()
+        {
+            yield return new WaitWhile(() => !HeroController.instance);
+            yield return new WaitWhile(() => !EventRegister.eventRegister.ContainsKey(ShowBoundNailEvent));
+
+            EventRegister.SendEvent(ShowBoundNailEvent);
+        }
+
         protected override void OnRestored()
         {
             IL.BossSequenceController.RestoreBindings -= BossSequenceController_RestoreBindings;
@@ -68,14 +76,6 @@ namespace ToggleableBindings.VanillaBindings
                 i => i.MatchCall<EventRegister>(nameof(EventRegister.SendEvent))
             );
             c.RemoveRange(2);
-        }
-
-        private IEnumerator OnAppliedCoroutine()
-        {
-            yield return new WaitWhile(() => !HeroController.instance);
-            yield return new WaitWhile(() => !EventRegister.eventRegister.ContainsKey(ShowBoundNailEvent));
-
-            EventRegister.SendEvent(ShowBoundNailEvent);
         }
 
         private static int BoundNailDamageOverride()

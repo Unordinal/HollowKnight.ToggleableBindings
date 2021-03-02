@@ -113,6 +113,9 @@
     <Compile Include="Extensions\ComponentExtensions.cs" />
     <Compile Include="Extensions\HashtableExtensions.cs" />
     <Compile Include="FakePrefab.cs" />
+    <Compile Include="Input\ActionCombo.cs" />
+    <Compile Include="Input\Keybinds.cs" />
+    <Compile Include="JsonNet\ActionComboJsonConverter.cs" />
     <Compile Include="UI\BindingApplyMsg.cs" />
     <Compile Include="UI\EventPropagator.cs" />
     <Compile Include="UI\SelectedTemporarily.cs" />

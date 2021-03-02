@@ -39,10 +39,6 @@ namespace ToggleableBindings
         private void GameManager_Update(On.GameManager.orig_Update orig, GameManager self)
         {
             orig(self);
-
-            if (Input.GetKeyDown(KeyCode.G))
-            {
-            }
         }
     }
 }

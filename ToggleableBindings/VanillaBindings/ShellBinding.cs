@@ -24,9 +24,9 @@ namespace ToggleableBindings.VanillaBindings
         private Sprite? _defaultSprite;
         private Sprite? _selectedSprite;
 
-        public override Sprite DefaultSprite => _defaultSprite ??= BaseGamePrefabs.ShellButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
+        public override Sprite DefaultSprite => _defaultSprite = _defaultSprite != null ? _defaultSprite : _defaultSprite = BaseGamePrefabs.ShellButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().iconImage.sprite;
 
-        public override Sprite SelectedSprite => _selectedSprite ??= BaseGamePrefabs.ShellButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
+        public override Sprite SelectedSprite => _selectedSprite = _selectedSprite != null ? _selectedSprite : _selectedSprite = BaseGamePrefabs.ShellButton.UnsafeGameObject.GetComponent<BossDoorChallengeUIBindingButton>().selectedSprite;
 
         public ShellBinding() : base("Shell")
         {
@@ -58,13 +58,13 @@ namespace ToggleableBindings.VanillaBindings
 
         private IEnumerator OnToggledCoroutine()
         {
-            yield return new WaitWhile(() => !HeroController.instance);
+            yield return new WaitWhile(() => HeroController.instance == null);
             yield return null;
-
-            PlayerData.instance?.MaxHealth();
 
             PlayMakerFSM.BroadcastEvent(CharmIndicatorCheckEvent);
             EventRegister.SendEvent(UpdateBlueHealthEvent);
+
+            HeroController.instance.playerData.MaxHealth();
         }
 
         private static int BoundMaxHealthOverride()
