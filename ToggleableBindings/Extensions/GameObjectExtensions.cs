@@ -14,7 +14,14 @@ namespace ToggleableBindings.Extensions
     {
         public static GameObject? GetParent(this GameObject gameObject)
         {
-            return gameObject?.transform?.parent?.gameObject;
+            if (gameObject == null)
+                throw new ArgumentNullException(nameof(gameObject));
+
+            Transform? parentTransform = gameObject.transform.parent;
+            if (parentTransform)
+                return parentTransform.gameObject;
+
+            return null;
         }
 
         public static void SetParent(this GameObject gameObject, GameObject parent, bool worldPositionStays = true)
@@ -26,12 +33,6 @@ namespace ToggleableBindings.Extensions
                 throw new ArgumentNullException(nameof(parent));
 
             gameObject.transform.SetParent(parent.transform, worldPositionStays);
-        }
-
-        public static IEnumerable<GameObject> GetChildren(this GameObject gameObject)
-        {
-            foreach (var child in gameObject.transform.GetComponentsInChildren<Transform>())
-                yield return child.gameObject;
         }
 
         public static string ListHierarchy(this GameObject gameObject)
