@@ -3,13 +3,7 @@ This mod allows you to bring up a menu at any time which will let you enable or 
 
 <img title="Screenshot of Bindings Menu" src="https://share.wildbook.me/j8VwOP3hvr3e7DKi.jpg" width="800"/>
 
-[A changelog is available here.](./CHANGELOG.md)
-
-[Testing video #3](https://youtu.be/vFd8THRPUGc) - Only a few more bugs to iron out.
-
-[Testing video #2](https://www.youtube.com/watch?v=mbTqIC7KFvY) - It's coming together decently.
-
-[Testing video #1](https://youtu.be/1n8NwYg6ZK4) - The video is somewhat out-of-date but gives a general idea.
+[A changelog is available here.](./CHANGELOG.md) Note: This mod does not touch the vanilla bindings menu at all.
 
 # Configuration
 `ToggleableBindings` provides multiple configuration settings, such as the ability to allow specific charms even when the Charms binding is active (by default, charms needed for game progression - such as Grimmchild and Kingsoul - are allowed if you enable the setting) and the option to enforce any binding restrictions (you need to be near a bench to apply/restore the default bindings otherwise).
@@ -42,16 +36,16 @@ This is the keybind that is used to open the Bindings menu. This uses actions in
 ### Binding-Specific Settings
 *Located in `Settings.Global.json`.*
 
-#### *`NailBinding.`***`MaxBoundNailDamage`** [_Default: `13`_]
+#### **`NailBinding.MaxBoundNailDamage`** [_Default: `13`_]
 When the `Nail` binding is active, this determines the nail's maximum amount of damage. The default is vanilla.
 
-#### *`ShellBinding.`***`MaxBoundShellHealth`** [_Default: `4`_]
+#### **`ShellBinding.MaxBoundShellHealth`** [_Default: `4`_]
 When the `Shell` binding is active, this determines the maximum amount of health the Knight can have. The default is vanilla.
 
-#### *`CharmsBinding.`***`AllowEssentialCharms`** [_Default: `false`_]
+#### **`CharmsBinding.AllowEssentialCharms`** [_Default: `false`_]
 When the `Charms` binding is active, this determines whether the charms listed in `EssentialCharms` can be equipped despite the binding being active.
 
-#### *`CharmsBinding.`***`EssentialCharms`** [_Default: `36, 40` (Kingsoul/Void Heart and Grimmchild)_]
+#### **`CharmsBinding.EssentialCharms`** [_Default: `36, 40` (Kingsoul/Void Heart and Grimmchild)_]
 This is a list of charm IDs. When the `Charms` binding is active and `AllowEssentialCharms` is set to `true`, the charms with the same IDs as the ones listed here can be equipped despite the binding being active. [All of the valid charm IDs and their respective charms can be seen in this image.](https://cdn.discordapp.com/attachments/462200562620825600/548520742246154260/charmID.png)
 
 ## Per-Save Settings
@@ -59,7 +53,7 @@ This is a list of charm IDs. When the `Charms` binding is active and `AllowEssen
 
 By default, there are no user-friendly editable settings here, but you may wish to change values here in a few circumstances.
 
-#### *`BindingManager.`***`RegisteredBindings`**
+#### **`BindingManager.RegisteredBindings`**
 These are the bindings registered in this specific save. `$type` is the internal type used for each binding, while `WasApplied` is used to tell whether the binding should be applied when the save is loaded. If for some reason a binding is resulting in you not being able to load a save, you can disable it by setting its `WasApplied` value to `false`.
 
 # Uninstalling
@@ -72,7 +66,7 @@ First, you'll of course want to add a reference to `ToggleableBindings.dll`. You
 
 Create a new file in your project - you may name it whatever you like, but it's recommended to add the word `Binding` to the end.
 
-In the new file, have your class inherit from `ToggleableBindings.Binding`. The constructor of the class should call the base constructor with the name of the binding via `: base("YourBindingNameHere")`.
+In the new file, have your class inherit from `ToggleableBindings.Binding`. The constructor of the class should call the base constructor with the name of the binding via `base("YourBindingNameHere")`.
 
 Add the required `OnApplied()` and `OnRestored()` overrides.
 
@@ -83,3 +77,9 @@ In `OnRestored()`, make sure any changes your binding made in `OnApplied()` are 
 Optionally override the `DefaultSprite` and `SelectedSprite` properties, and provide your own sprites. These sprites will be shown in the Bindings menu. If they aren't provided, they will have placeholder sprites with a `?` symbol.
 
 Optionally override the `CanBeApplied()` and `CanBeRestored()` methods. These methods determine when the player can enable or disable your binding. The default behavior is to allow applying and restoring as long as the player is within 10 units of a bench. Note that if the player has `EnforceBindingRestrictions` set to `false`, these methods will be ignored. The return value of these methods is `ResultInfo<bool>`. The first parameter is the value of the bool; the second is the message given to the player if the result is `false`.
+
+Once your binding class is set up to your liking, you just have one or two steps left.
+
+In your mod initializer, use the `BindingManager.RegisterBinding` method to register your binding. This will add it to the Bindings menu and allow the player to enable and disable it.
+
+If your mod implements `ITogglableMod`, use the `BindingManager.DeregisterBinding` method in your `Unload()` implementation to deregister your binding. This will call `Restore()` on it if it was enabled before deregistering it.

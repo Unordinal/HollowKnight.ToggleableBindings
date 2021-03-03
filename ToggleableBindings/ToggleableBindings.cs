@@ -28,6 +28,9 @@ namespace ToggleableBindings
         [NotNull, DisallowNull]
         internal QuickSettings? Settings { get; private set; }
 
+        /// <summary>
+        /// Constructor. Do not use explicitly.
+        /// </summary>
         public ToggleableBindings() : base()
         {
             if (Instance != null)
