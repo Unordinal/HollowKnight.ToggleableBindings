@@ -29,7 +29,6 @@ namespace ToggleableBindings.Input
                 OpenBindingsUI = _defaultOpenBindingsUI;
         }
 
-        // TODO: Refactor. This is a little bit of a mess.
         public static ActionCombo? KeybindStringToCombo(string? keybindStr)
         {
             if (StringUtil.IsNullOrWhiteSpace(keybindStr))

@@ -18,6 +18,7 @@ using UnityEngine;
 
 namespace ToggleableBindings.HKQuickSettings
 {
+    // TODO: Refactor at some point.
     internal class QuickSettings
     {
         /// <summary>

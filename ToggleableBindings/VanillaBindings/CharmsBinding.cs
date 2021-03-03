@@ -21,12 +21,11 @@ namespace ToggleableBindings.VanillaBindings
     public sealed class CharmsBinding : Binding
     {
         [QuickSetting]
-        public static bool AllowEssentialCharms { get; private set; } = true;
+        public static bool AllowEssentialCharms { get; private set; } = false;
 
         [QuickSetting("EssentialCharms")]
         internal static int[] ExemptCharms =
         {
-            2, // Compass for testing
             36, // Void Heart
             40, // Grimmchild
         };
