@@ -7,7 +7,10 @@ using System.Reflection;
 
 namespace ToggleableBindings.Extensions
 {
-    public static class ReflectionExtensions
+    /// <summary>
+    /// Extensions for working with reflection.
+    /// </summary>
+    internal static class ReflectionExtensions
     {
         public static T? GetCustomAttribute<T>(this MemberInfo element, bool inherit) where T : Attribute
         {

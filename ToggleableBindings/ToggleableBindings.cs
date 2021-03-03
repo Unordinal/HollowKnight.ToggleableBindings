@@ -11,8 +11,14 @@ using Vasi;
 
 namespace ToggleableBindings
 {
+    /// <summary>
+    /// The entry point for the <see cref="ToggleableBindings"/> mod.
+    /// </summary>
     public sealed partial class ToggleableBindings : Mod
     {
+        /// <summary>
+        /// Gets the instance of this mod.
+        /// </summary>
         [NotNull, DisallowNull]
         public static ToggleableBindings? Instance { get; private set; }
 
@@ -22,7 +28,7 @@ namespace ToggleableBindings
         [NotNull, DisallowNull]
         internal QuickSettings? Settings { get; private set; }
 
-        public ToggleableBindings() : base()
+        private ToggleableBindings() : base()
         {
             if (Instance != null)
             {
@@ -33,6 +39,7 @@ namespace ToggleableBindings
             Instance = this;
         }
 
+        /// <inheritdoc/>
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
         {
             BaseGamePrefabs.Initialize(preloadedObjects);
@@ -58,8 +65,10 @@ namespace ToggleableBindings
             Unloading?.Invoke();
         }*/
 
+        /// <inheritdoc/>
         public override int LoadPriority() => -10;
 
+        /// <inheritdoc/>
         public override List<(string, string)> GetPreloadNames()
         {
             return new()
@@ -69,6 +78,7 @@ namespace ToggleableBindings
             };
         }
 
+        /// <inheritdoc/>
         public override string GetVersion() => VersionUtil.GetVersion<ToggleableBindings>();
     }
 }

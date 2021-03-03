@@ -9,6 +9,9 @@ using TB = ToggleableBindings.ToggleableBindings;
 
 namespace ToggleableBindings.Extensions
 {
+    /// <summary>
+    /// Extensions for working with <see cref="Component"/> objects.
+    /// </summary>
     public static class ComponentExtensions
     {
         private const BindingFlags AllInstance = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
@@ -26,7 +29,7 @@ namespace ToggleableBindings.Extensions
         /// </param>
         /// <param name="reflFlags">The flags that specify what types of members are replaced.</param>
         /// <returns>This component with its values set to the values from the source component.</returns>
-        public static T CopyFrom<T>(this T component, T source, bool replaceSelfGORefs = true, BindingFlags reflFlags = AllInstance) where T : Component
+        internal static T CopyFrom<T>(this T component, T source, bool replaceSelfGORefs = true, BindingFlags reflFlags = AllInstance) where T : Component
         {
             if (!component)
                 throw new ArgumentNullException(nameof(component));

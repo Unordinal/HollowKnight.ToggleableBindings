@@ -6,7 +6,7 @@ using ToggleableBindings.Input;
 
 namespace ToggleableBindings.JsonNet
 {
-    public class ActionComboJsonConverter : JsonConverter
+    internal class ActionComboJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {

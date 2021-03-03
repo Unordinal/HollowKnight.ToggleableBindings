@@ -13,7 +13,7 @@ using UnityEngine;
 namespace ToggleableBindings.VanillaBindings
 {
     [VanillaBinding]
-    public sealed class NailBinding : Binding
+    internal sealed class NailBinding : Binding
     {
         [QuickSetting]
         public static int MaxBoundNailDamage { get; private set; } = 13;

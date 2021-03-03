@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 namespace ToggleableBindings.UI
 {
-    public class BindingsUI : MonoBehaviour
+    internal class BindingsUI : MonoBehaviour
     {
         internal static FakePrefab Prefab { get; }
 

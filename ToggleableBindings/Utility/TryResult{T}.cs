@@ -21,6 +21,11 @@ namespace ToggleableBindings.Utility
         /// <exception cref="InvalidOperationException"/>
         public T Value => (IsSuccess) ? _value : throw new InvalidOperationException($"Cannot get the value of an unsuccessful {nameof(TryResult<T>)}.");
 
+        /// <summary>
+        /// Creates a new <see cref="TryResult{T}"/> with the specified value or the exception that was caused if unsuccessful.
+        /// </summary>
+        /// <param name="value">The value to use.</param>
+        /// <param name="exception">The exception that was produced by the operation.</param>
         protected TryResult([AllowNull] T value, Exception? exception = null) : base(exception)
         {
             _value = value;
@@ -54,8 +59,16 @@ namespace ToggleableBindings.Utility
     // Static Members
     public partial class TryResult<T>
     {
+        /// <summary>
+        /// Implicitly creates a new <see cref="TryResult{T}"/> from the given value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public static implicit operator TryResult<T>([AllowNull] T value) => new(value);
 
+        /// <summary>
+        /// Implicitly creates a new <see cref="TryResult{T}"/> from the given exception.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public static implicit operator TryResult<T>(Exception value) => new(default, value);
     }
 }

@@ -9,12 +9,16 @@ namespace ToggleableBindings.Collections
     {
         private readonly IDictionary<TKey, TValue> _dictionary;
 
+        /// <inheritdoc/>
         public IReadOnlyCollection<TKey> Keys { get; }
 
+        /// <inheritdoc/>
         public IReadOnlyCollection<TValue> Values { get; }
 
+        /// <inheritdoc/>
         public int Count => _dictionary.Count;
 
+        /// <inheritdoc/>
         public TValue this[TKey key] => _dictionary[key];
 
         /// <summary>
@@ -31,21 +35,25 @@ namespace ToggleableBindings.Collections
             Values = new ReadOnlyCollection<TValue>(_dictionary.Values);
         }
 
+        /// <inheritdoc/>
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
             return _dictionary.Contains(item);
         }
 
+        /// <inheritdoc/>
         public bool ContainsKey(TKey key)
         {
             return _dictionary.ContainsKey(key);
         }
 
+        /// <inheritdoc/>
         public bool TryGetValue(TKey key, out TValue value)
         {
             return _dictionary.TryGetValue(key, out value);
         }
 
+        /// <inheritdoc/>
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             return _dictionary.GetEnumerator();

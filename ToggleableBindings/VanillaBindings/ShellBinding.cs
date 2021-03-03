@@ -12,7 +12,7 @@ using UnityEngine;
 namespace ToggleableBindings.VanillaBindings
 {
     [VanillaBinding]
-    public sealed class ShellBinding : Binding
+    internal sealed class ShellBinding : Binding
     {
         [QuickSetting]
         public static int MaxBoundShellHealth { get; private set; } = 4;

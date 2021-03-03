@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace ToggleableBindings.Utility
 {
-    public readonly struct CoroutineBuilder
+    internal readonly struct CoroutineBuilder
     {
         private readonly IEnumerable<Instruction> _instructions;
 

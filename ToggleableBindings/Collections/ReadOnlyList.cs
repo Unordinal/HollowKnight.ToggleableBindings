@@ -33,11 +33,13 @@ namespace ToggleableBindings.Collections
             _list = list;
         }
 
+        /// <inheritdoc/>
         public bool Contains(T item)
         {
             return _list.Contains(item);
         }
 
+        /// <inheritdoc/>
         public IEnumerator<T> GetEnumerator()
         {
             return _list.GetEnumerator();

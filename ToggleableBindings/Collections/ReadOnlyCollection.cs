@@ -24,11 +24,13 @@ namespace ToggleableBindings.Collections
             _collection = collection;
         }
 
+        /// <inheritdoc/>
         public bool Contains(T item)
         {
             return _collection.Contains(item);
         }
 
+        /// <inheritdoc/>
         public IEnumerator<T> GetEnumerator()
         {
             return _collection.GetEnumerator();

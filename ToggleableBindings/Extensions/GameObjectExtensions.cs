@@ -5,8 +5,16 @@ using UnityEngine;
 
 namespace ToggleableBindings.Extensions
 {
+    /// <summary>
+    /// Extensions for Unity game objects.
+    /// </summary>
     public static class GameObjectExtensions
     {
+        /// <summary>
+        /// Gets the parent of this game object.
+        /// </summary>
+        /// <param name="gameObject">The game object.</param>
+        /// <returns>The parent of the object, or <see langword="null"/> if the object has no parent.</returns>
         public static GameObject? GetParent(this GameObject gameObject)
         {
             if (gameObject == null)
@@ -19,6 +27,12 @@ namespace ToggleableBindings.Extensions
             return null;
         }
 
+        /// <summary>
+        /// Sets the parent of this game object.
+        /// </summary>
+        /// <param name="gameObject">The game object.</param>
+        /// <param name="parent">The new parent of the object.</param>
+        /// <param name="worldPositionStays">Whether the object should keep its world position.</param>
         public static void SetParent(this GameObject gameObject, GameObject parent, bool worldPositionStays = true)
         {
             if (!gameObject)
@@ -30,15 +44,13 @@ namespace ToggleableBindings.Extensions
             gameObject.transform.SetParent(parent.transform, worldPositionStays);
         }
 
-        public static string ListHierarchy(this GameObject gameObject)
-        {
-            string hierarchy = gameObject.name;
-            var parent = gameObject.GetParent();
-            if (parent != null)
-                hierarchy += "->" + parent.ListHierarchy();
-            return hierarchy;
-        }
-
+        /// <summary>
+        /// Gets the component of the given type on the child at the specified path in this game object.
+        /// </summary>
+        /// <typeparam name="T">The type of component.</typeparam>
+        /// <param name="gameObject">The game object.</param>
+        /// <param name="childPath">The path of the child in this game object.</param>
+        /// <returns>The component of the given type on the found child.</returns>
         public static T GetComponentInChild<T>(this GameObject gameObject, string childPath) where T : Component
         {
             if (gameObject == null)
@@ -50,6 +62,12 @@ namespace ToggleableBindings.Extensions
             return gameObject.FindChild(childPath).GetComponent<T>();
         }
 
+        /// <summary>
+        /// Finds the child of this game object. Shorthand for <see cref="Transform.Find(string)"/>.
+        /// </summary>
+        /// <param name="gameObject">The game object.</param>
+        /// <param name="childPath">The path of the child to find.</param>
+        /// <returns>The game object at the specified path.</returns>
         public static GameObject FindChild(this GameObject gameObject, string childPath)
         {
             if (!gameObject)
@@ -84,7 +102,7 @@ namespace ToggleableBindings.Extensions
         }
 
         /// <summary>
-        /// Checks to see if this game object is a prefab.
+        /// Checks to see if this game object is a prefab. Not tested.
         /// </summary>
         /// <param name="go">The object to check.</param>
         /// <returns><see langword="true"/> if this object is a Unity prefab; otherwise, <see langword="false"/>.</returns>
@@ -94,6 +112,15 @@ namespace ToggleableBindings.Extensions
                 throw new ArgumentNullException(nameof(go));
 
             return go.gameObject.scene.rootCount == 0 && !go.activeInHierarchy;
+        }
+
+        internal static string ListHierarchy(this GameObject gameObject)
+        {
+            string hierarchy = gameObject.name;
+            var parent = gameObject.GetParent();
+            if (parent != null)
+                hierarchy += "->" + parent.ListHierarchy();
+            return hierarchy;
         }
     }
 }

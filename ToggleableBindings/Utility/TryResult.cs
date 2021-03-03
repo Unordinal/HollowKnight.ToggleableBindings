@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace ToggleableBindings.Utility
 {
     /*
-     * Normally this type would use ExceptionDispatchInfo, but we're on .NET 3.5 
+     * Normally this type would use ExceptionDispatchInfo, but we're on .NET 3.5
      * which doesn't have that and backporting it would be a real pain.
      */
 
@@ -27,6 +27,10 @@ namespace ToggleableBindings.Utility
         /// </summary>
         public Exception? Exception { get; }
 
+        /// <summary>
+        /// Creates a new unsuccessful <see cref="TryResult"/> with the specified exception.
+        /// </summary>
+        /// <param name="exception">The exception that was produced by the operation.</param>
         protected TryResult(Exception? exception = null)
         {
             Exception = exception;
@@ -41,6 +45,7 @@ namespace ToggleableBindings.Utility
                 throw Exception;
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             string output = IsSuccess.ToString();
@@ -58,7 +63,13 @@ namespace ToggleableBindings.Utility
         /// </summary>
         public static TryResult Success { get; } = new TryResult();
 
+        /// <inheritdoc cref="TryResult(Exception?)"/>
         public static implicit operator TryResult(Exception value) => new(value);
+
+        /// <summary>
+        /// Implicitly converts the <see cref="TryResult"/> to a <see cref="bool"/>.
+        /// </summary>
+        /// <param name="value">The value to use.</param>
         public static implicit operator bool(TryResult value) => value.IsSuccess;
     }
 }

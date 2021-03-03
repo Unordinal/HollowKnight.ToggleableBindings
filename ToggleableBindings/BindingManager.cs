@@ -1,4 +1,5 @@
 ﻿#nullable enable
+#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
 
 using System;
 using System.Collections;

@@ -25,6 +25,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +35,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\ToggleableBindings.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
@@ -99,7 +102,6 @@
     <Compile Include="Binding.cs" />
     <Compile Include="BindingEventHandler.cs" />
     <Compile Include="BindingManager.cs" />
-    <Compile Include="Collections\Concurrent\ConcurrentDictionary.cs" />
     <Compile Include="Collections\IReadOnlyCollection.cs" />
     <Compile Include="Collections\IReadOnlyDictionary.cs" />
     <Compile Include="Collections\IReadOnlyList.cs" />
@@ -111,7 +113,6 @@
     <Compile Include="Debugging\Exceptions\AssertFailedException.cs" />
     <Compile Include="Extensions\AsReadOnlyExtensions.cs" />
     <Compile Include="Extensions\ComponentExtensions.cs" />
-    <Compile Include="Extensions\HashtableExtensions.cs" />
     <Compile Include="FakePrefab.cs" />
     <Compile Include="Input\ActionCombo.cs" />
     <Compile Include="Input\Keybinds.cs" />

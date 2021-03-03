@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace ToggleableBindings.Utility
 {
-    public class CoroutineController : MonoBehaviour
+    internal class CoroutineController : MonoBehaviour
     {
         [NotNull, DisallowNull]
         private static CoroutineController? Instance { get; set; }

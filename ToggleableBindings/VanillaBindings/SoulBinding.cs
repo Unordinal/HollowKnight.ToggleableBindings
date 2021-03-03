@@ -12,7 +12,7 @@ using UnityEngine;
 namespace ToggleableBindings.VanillaBindings
 {
     [VanillaBinding]
-    public sealed class SoulBinding : Binding
+    internal sealed class SoulBinding : Binding
     {
         private const string BindVesselOrbEvent = "BIND VESSEL ORB";
         private const string UnbindVesselOrbEvent = "UNBIND VESSEL ORB";

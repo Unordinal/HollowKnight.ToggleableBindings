@@ -6,6 +6,7 @@
     /// <typeparam name="T">The type of the items within the list.</typeparam>
     public interface IReadOnlyList<T> : IReadOnlyCollection<T>
     {
+        /// <inheritdoc/>
         T this[int index] { get; }
     }
 }

@@ -18,7 +18,7 @@ using Vasi;
 namespace ToggleableBindings.VanillaBindings
 {
     [VanillaBinding]
-    public sealed class CharmsBinding : Binding
+    internal sealed class CharmsBinding : Binding
     {
         [QuickSetting]
         public static bool AllowEssentialCharms { get; private set; } = false;

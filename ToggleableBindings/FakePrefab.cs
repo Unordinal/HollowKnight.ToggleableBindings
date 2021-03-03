@@ -51,6 +51,7 @@ namespace ToggleableBindings
         /// </summary>
         /// <param name="original">The object to create a prefab of.</param>
         /// <param name="prefabName">The name to give the prefab. This name will be passed on to each instance.</param>
+        /// <param name="setActive">Whether to set the prefab object as active once it's initialized.</param>
         public FakePrefab(GameObject original, string? prefabName = null, bool setActive = false)
         {
             if (original == null)

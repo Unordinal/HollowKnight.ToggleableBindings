@@ -13,6 +13,7 @@ namespace ToggleableBindings.Exceptions
         private const string DefaultMessage = "An invalid type argument was specified.";
         private const string TypeParamName_Name = "(Type parameter '{0}')";
 
+        /// <inheritdoc/>
         public override string Message
         {
             get

@@ -4,6 +4,9 @@ using ToggleableBindings.Collections;
 
 namespace ToggleableBindings.Extensions
 {
+    /// <summary>
+    /// Extensions to wrap various types of collections with read-only collections.
+    /// </summary>
     public static class AsReadOnlyExtensions
     {
         /// <summary>

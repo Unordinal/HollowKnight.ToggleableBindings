@@ -19,6 +19,9 @@ namespace ToggleableBindings.UI
 
         private GameObject? _lastSelected;
 
+        /// <summary>
+        /// The child <see cref="RectTransform"/> that contains the content to scroll.
+        /// </summary>
         public RectTransform Content
         {
             get => _content;
@@ -77,6 +80,9 @@ namespace ToggleableBindings.UI
             _lastSelected = selected;
         }
 
+        /// <summary>
+        /// Reset the scroller to its default state.
+        /// </summary>
         public void Reset()
         {
             _content.anchoredPosition = new Vector2(_content.anchoredPosition.x, 0f);

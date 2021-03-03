@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace ToggleableBindings.UI
 {
-    public class BindingsUIBindingButton : MonoBehaviour, ISubmitHandler, ICancelHandler, IPointerClickHandler
+    internal class BindingsUIBindingButton : MonoBehaviour, ISubmitHandler, ICancelHandler, IPointerClickHandler
     {
         internal static FakePrefab Prefab { get; }
 
@@ -131,7 +131,10 @@ namespace ToggleableBindings.UI
 
         public void OnSubmit(BaseEventData eventData)
         {
-            ResultInfo<bool> canBeToggled = (!IsSelected ? Binding?.CanBeApplied() : Binding?.CanBeRestored()) ?? true;
+            ResultInfo<bool> canBeToggled = true;
+            if (Binding is not null)
+                canBeToggled = Binding.IsApplied ? Binding.CanBeRestored() : Binding.CanBeApplied();
+
             bool enforceRestrictions = ToggleableBindings.EnforceBindingRestrictions;
 
             if (!enforceRestrictions || canBeToggled.Value)
