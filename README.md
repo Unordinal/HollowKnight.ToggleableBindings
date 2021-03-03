@@ -21,16 +21,14 @@ Bindings can sometimes restrict you from applying them - for instance, the defau
 #### **`OpenBindingUI`** [_Default: `Down,DreamNail`_]
 This is the keybind that is used to open the Bindings menu. This uses actions instead of specific buttons or keys. For example, the default bind requires you to press whatever keys/buttons you have bound to the down direction and the Dream Nail to open the menu. The value is comma-separated and case-insensitive. An example bind would be '`Up,SuperDash`'. Valid actions you can bind are listed below.
 * Left, Right, Up, Down
-* RS_Left, RS_Right, RS_Up, RS_Down
 * Jump
 * Attack
 * Dash
 * SuperDash
 * Cast
 * QuickCast
-* DreamNail
-* Focus
 * QuickMap
+* DreamNail
 * Inventory
 
 ### Binding-Specific Settings

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GlobalEnums;
 using InControl;
 using ToggleableBindings.HKQuickSettings;
 using ToggleableBindings.Utility;
@@ -22,9 +23,8 @@ namespace ToggleableBindings.Input
             if (gmi == null)
                 throw new InvalidOperationException("GameManager instance is null!");
 
-            var actions = gmi.inputHandler.inputActions;
+            _defaultOpenBindingsUI = new ActionCombo(HeroActionButton.DOWN, HeroActionButton.DREAM_NAIL);
 
-            _defaultOpenBindingsUI = new ActionCombo(actions.down, actions.dreamNail);
             if (OpenBindingsUI == null)
                 OpenBindingsUI = _defaultOpenBindingsUI;
         }
@@ -43,13 +43,15 @@ namespace ToggleableBindings.Input
 
             var actionStrs = keybindStr.Split(',').Select(s => s.Trim().ToLower());
 
-            List<PlayerAction> comboActions = new();
+            List<HeroActionButton> comboActions = new();
             foreach (var actionStr in actionStrs)
             {
                 var actionStrNoWS = StringUtil.RemoveWhiteSpace(actionStr);
                 if (allActionsNoWS.TryGetValue(actionStrNoWS, out var playerAction))
                 {
-                    comboActions.Add(playerAction);
+                    var actionName = playerAction.Name;
+                    var actionNameCleaned = StringUtil.RemoveWhiteSpace(actionName).ToLower();
+                    comboActions.Add(GetActionButtonForString(actionNameCleaned));
                 }
                 else
                     ToggleableBindings.Instance.LogError($"Couldn't parse part of keybind string '{actionStr}', ignoring.");
@@ -60,8 +62,35 @@ namespace ToggleableBindings.Input
 
         public static string ComboToKeybindString(ActionCombo actionCombo)
         {
-            var actionStrs = actionCombo.Actions.Select(a => StringUtil.RemoveWhiteSpace(a.Name));
+            var actionStrs = actionCombo.Actions.Select(actionButton => ActionButtonToString[actionButton]);
             return StringUtil.Join(',', actionStrs);
+        }
+
+        public static Dictionary<string, HeroActionButton> StringToActionButton = new()
+        {
+            { "up",         HeroActionButton.UP },
+            { "down",       HeroActionButton.DOWN },
+            { "left",       HeroActionButton.LEFT },
+            { "right",      HeroActionButton.RIGHT },
+            { "jump",       HeroActionButton.JUMP },
+            { "attack",     HeroActionButton.ATTACK },
+            { "cast",       HeroActionButton.CAST },
+            { "quickcast",  HeroActionButton.QUICK_CAST },
+            { "dash",       HeroActionButton.DASH },
+            { "superdash",  HeroActionButton.SUPER_DASH },
+            { "quickmap",   HeroActionButton.QUICK_MAP },
+            { "inventory",  HeroActionButton.INVENTORY },
+            { "dreamnail",  HeroActionButton.DREAM_NAIL },
+        };
+
+        public static Dictionary<HeroActionButton, string> ActionButtonToString = StringToActionButton.ToDictionary(kv => kv.Value, kv => kv.Key);
+
+        public static HeroActionButton GetActionButtonForString(string action)
+        {
+            if (StringToActionButton.TryGetValue(action, out var value))
+                return value;
+
+            throw new ArgumentException($"No HeroActionButton matched the action value of '{action}'.");
         }
     }
 }
