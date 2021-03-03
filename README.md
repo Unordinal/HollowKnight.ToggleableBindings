@@ -1,4 +1,4 @@
-# UnoHKMods
+# UnosHKMods
 Random Hollow Knight mods I'm working on.
 
 ## ToggleableBindings
