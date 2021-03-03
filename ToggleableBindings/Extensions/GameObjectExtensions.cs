@@ -1,12 +1,7 @@
 ﻿#nullable enable
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Modding;
 using UnityEngine;
-using Logger = Modding.Logger;
 
 namespace ToggleableBindings.Extensions
 {
@@ -42,6 +37,17 @@ namespace ToggleableBindings.Extensions
             if (parent != null)
                 hierarchy += "->" + parent.ListHierarchy();
             return hierarchy;
+        }
+
+        public static T GetComponentInChild<T>(this GameObject gameObject, string childPath) where T : Component
+        {
+            if (gameObject == null)
+                throw new ArgumentNullException(nameof(gameObject));
+
+            if (childPath is null)
+                throw new ArgumentNullException(nameof(childPath));
+
+            return gameObject.FindChild(childPath).GetComponent<T>();
         }
 
         public static GameObject FindChild(this GameObject gameObject, string childPath)

@@ -131,11 +131,10 @@ namespace ToggleableBindings.UI
 
         public void OnSubmit(BaseEventData eventData)
         {
-            var canBeApplied = ToggleableBindings.EnforceBindingRestrictions
-                ? (Binding?.CanBeApplied() ?? false)
-                : true;
+            ResultInfo<bool> canBeToggled = (!IsSelected ? Binding?.CanBeApplied() : Binding?.CanBeRestored()) ?? true;
+            bool enforceRestrictions = ToggleableBindings.EnforceBindingRestrictions;
 
-            if (canBeApplied.Value)
+            if (!enforceRestrictions || canBeToggled.Value)
             {
                 IsSelected = !IsSelected;
 
@@ -145,8 +144,11 @@ namespace ToggleableBindings.UI
             else
             {
                 var applyMsgGO = ObjectFactory.Instantiate(CustomPrefabs.BindingApplyMsg);
-                var tmpText = applyMsgGO.FindChild("Text").GetComponent<TextMeshPro>();
-                tmpText.text = canBeApplied.Information ?? tmpText.text;
+                if (!StringUtil.IsNullOrEmpty(canBeToggled.Information))
+                {
+                    var message = applyMsgGO.GetComponentInChild<TextMeshPro>("Text");
+                    message.text = canBeToggled.Information;
+                }
             }
         }
 
