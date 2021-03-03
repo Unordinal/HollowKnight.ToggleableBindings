@@ -7,4 +7,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2021-03-02
 - Initial release.
 
-[0.1.0]: https://github.com/Unordinal/UnosHKMods/releases/tag/ToggleableBindings-v0.1.0
+[0.1.0]: https://github.com/Unordinal/HollowKnight.ToggleableBindings/releases/tag/v0.1.0
