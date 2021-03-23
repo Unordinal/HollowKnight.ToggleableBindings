@@ -82,7 +82,7 @@ namespace ToggleableBindings.VanillaBindings
         {
             int nailDamage = GameManager.instance.playerData.nailDamage;
 
-            return (nailDamage >= MaxBoundNailDamage) ? MaxBoundNailDamage : Mathf.RoundToInt(nailDamage * 0.8f);
+            return (nailDamage > MaxBoundNailDamage) ? MaxBoundNailDamage : Mathf.RoundToInt(nailDamage * 0.8f);
         }
     }
 }
