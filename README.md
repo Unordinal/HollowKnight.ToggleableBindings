@@ -1,6 +1,8 @@
 # HollowKnight.ToggleableBindings
 This mod allows you to bring up a menu at any time which will let you enable or disable bindings. This can be used to enable bindings when fighting in the Hall of Gods or at any other point in the game. Mod authors can create their own custom bindings using the `BindingManager` and `Binding` classes.
 
+The default keybind to open the menu that allows you to turn on and off the bindings is `Down` + `Dreamnail`. That is, hold the 'Down' direction and then, while holding it, press the 'Dreamnail' button. You can change this keybind in the settings, which are described below in the `Configuration` section.
+
 <img title="Screenshot of Bindings Menu" src="https://share.wildbook.me/j8VwOP3hvr3e7DKi.jpg" width="800"/>
 
 [A changelog is available here.](./CHANGELOG.md) Note: This mod does not touch the vanilla bindings menu at all.
