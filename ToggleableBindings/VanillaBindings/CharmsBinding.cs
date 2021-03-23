@@ -21,7 +21,7 @@ namespace ToggleableBindings.VanillaBindings
     internal sealed class CharmsBinding : Binding
     {
         [QuickSetting]
-        public static bool AllowEssentialCharms { get; private set; } = false;
+        public static bool AllowEssentialCharms { get; private set; } = true;
 
         [QuickSetting("EssentialCharms")]
         internal static int[] ExemptCharms =

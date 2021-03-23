@@ -1,7 +1,7 @@
 # HollowKnight.ToggleableBindings
 This mod allows you to bring up a menu at any time which will let you enable or disable bindings. This can be used to enable bindings when fighting in the Hall of Gods or at any other point in the game. Mod authors can create their own custom bindings using the `BindingManager` and `Binding` classes.
 
-The default keybind to open the menu that allows you to turn on and off the bindings is `Down` + `Dreamnail`. That is, hold the 'Down' direction and then, while holding it, press the 'Dreamnail' button. You can change this keybind in the settings, which are described below in the `Configuration` section.
+The default keybind to open the menu that allows you to turn on and off the bindings is `Down` + `SuperDash`. That is, hold the 'Down' direction and then, while holding it, press the 'Crystal Dash' button. You can change this keybind in the settings, which are described below in the `Configuration` section.
 
 <img title="Screenshot of Bindings Menu" src="https://share.wildbook.me/j8VwOP3hvr3e7DKi.jpg" width="800"/>
 
@@ -20,8 +20,8 @@ _Settings files have the extension `.json` and are located in your saves folder,
 #### **`EnforceBindingRestrictions`** [_Default: `true`_]
 Bindings can sometimes restrict you from applying them - for instance, the default vanilla bindings will only allow you to enable or disable them when you're near a bench. If this is `false`, you can enable and disable bindings whenever you like.
 
-#### **`OpenBindingUI`** [_Default: `Down,DreamNail`_]
-This is the keybind that is used to open the Bindings menu. This uses actions instead of specific buttons or keys. For example, the default bind requires you to press whatever keys/buttons you have bound to the down direction and the Dream Nail to open the menu. The value is comma-separated and case-insensitive. An example bind would be '`Up,SuperDash`'. Valid actions you can bind are listed below.
+#### **`OpenBindingUI`** [_Default: `Down,SuperDash`_]
+This is the keybind that is used to open the Bindings menu. This uses actions instead of specific buttons or keys. For example, the default bind requires you to press whatever keys/buttons you have bound to the down direction and Crystal Dash to open the menu. The value is comma-separated and case-insensitive. An example bind would be '`Up,DreamNail`'. Valid actions you can bind are listed below.
 * Left, Right, Up, Down
 * Jump
 * Attack
@@ -42,7 +42,7 @@ When the `Nail` binding is active, this determines the nail's maximum amount of 
 #### **`ShellBinding.MaxBoundShellHealth`** [_Default: `4`_]
 When the `Shell` binding is active, this determines the maximum amount of health the Knight can have. The default is vanilla.
 
-#### **`CharmsBinding.AllowEssentialCharms`** [_Default: `false`_]
+#### **`CharmsBinding.AllowEssentialCharms`** [_Default: `true`_]
 When the `Charms` binding is active, this determines whether the charms listed in `EssentialCharms` can be equipped despite the binding being active.
 
 #### **`CharmsBinding.EssentialCharms`** [_Default: `36, 40` (Kingsoul/Void Heart and Grimmchild)_]
