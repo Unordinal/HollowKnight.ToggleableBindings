@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.1] - 2021-03-23
 - Fixed the nail damage calculation to check with `>` instead of `>=`.
+- Fixed the shell binding health display breaking when the Knight's max health changes.
 - Changed the default `Open Bindings UI` keybind back to `Down` + `SuperDash` to reduce confusion.
 - Changed the default value of the `AllowEssentialCharms` setting to `true`.
 
