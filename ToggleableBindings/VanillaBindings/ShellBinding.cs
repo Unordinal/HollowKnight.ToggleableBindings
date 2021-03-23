@@ -1,10 +1,10 @@
 ﻿#nullable enable
 
+using MonoMod.RuntimeDetour;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using MonoMod.RuntimeDetour;
 using ToggleableBindings.HKQuickSettings;
 using ToggleableBindings.Utility;
 using UnityEngine;
@@ -42,6 +42,8 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnApplied()
         {
+            On.PlayerData.SetInt += PlayerData_SetInt;
+
             foreach (var detour in _detours)
                 detour.Apply();
 
@@ -50,6 +52,8 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnRestored()
         {
+            On.PlayerData.SetInt -= PlayerData_SetInt;
+
             foreach (var detour in _detours)
                 detour.Undo();
 
@@ -64,7 +68,7 @@ namespace ToggleableBindings.VanillaBindings
             PlayMakerFSM.BroadcastEvent(CharmIndicatorCheckEvent);
             EventRegister.SendEvent(UpdateBlueHealthEvent);
 
-            HeroController.instance.playerData.MaxHealth();
+            PlayerData.instance.MaxHealth();
         }
 
         private static int BoundMaxHealthOverride()
@@ -76,6 +80,14 @@ namespace ToggleableBindings.VanillaBindings
                 maxBoundHealth += 2;
 
             return maxBoundHealth;
+        }
+
+        private void PlayerData_SetInt(On.PlayerData.orig_SetInt orig, PlayerData self, string intName, int value)
+        {
+            orig(self, intName, value);
+
+            if (intName == "maxHealth")
+                PlayMakerFSM.BroadcastEvent(CharmIndicatorCheckEvent);
         }
     }
 }

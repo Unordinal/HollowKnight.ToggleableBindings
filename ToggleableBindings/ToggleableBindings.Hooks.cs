@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace ToggleableBindings
@@ -12,16 +13,22 @@ namespace ToggleableBindings
 
         private void AddHooks()
         {
-            On.GameManager.Update += GameManager_Update;
             On.GameManager.OnApplicationQuit += GameManager_OnApplicationQuit;
             On.GameManager.ReturnToMainMenu += GameManager_ReturnToMainMenu;
+
+#if DEBUG
+            On.GameManager.Update += GameManager_Update;
+#endif
         }
 
         private void RemoveHooks()
         {
-            On.GameManager.Update -= GameManager_Update;
             On.GameManager.OnApplicationQuit -= GameManager_OnApplicationQuit;
             On.GameManager.ReturnToMainMenu -= GameManager_ReturnToMainMenu;
+
+#if DEBUG
+            On.GameManager.Update -= GameManager_Update;
+#endif
         }
 
         private IEnumerator GameManager_ReturnToMainMenu(On.GameManager.orig_ReturnToMainMenu orig, GameManager self, GameManager.ReturnToMainMenuSaveModes saveMode, Action<bool> callback)
@@ -36,9 +43,11 @@ namespace ToggleableBindings
             orig(self);
         }
 
+#if DEBUG
         private void GameManager_Update(On.GameManager.orig_Update orig, GameManager self)
         {
             orig(self);
         }
+#endif
     }
 }
