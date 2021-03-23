@@ -88,6 +88,9 @@
       <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.UIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UnosUtils">
+      <HintPath>..\..\UnosUtils\UnosUtils\bin\Release\UnosUtils.dll</HintPath>
+    </Reference>
     <Reference Include="Vasi">
       <HintPath>C:\Games\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods\Vasi.dll</HintPath>
       <Private>False</Private>

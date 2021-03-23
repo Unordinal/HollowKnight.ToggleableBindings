@@ -23,7 +23,7 @@ namespace ToggleableBindings.Input
             if (gmi == null)
                 throw new InvalidOperationException("GameManager instance is null!");
 
-            _defaultOpenBindingsUI = new ActionCombo(HeroActionButton.DOWN, HeroActionButton.DREAM_NAIL);
+            _defaultOpenBindingsUI = new ActionCombo(HeroActionButton.DOWN, HeroActionButton.SUPER_DASH);
 
             if (OpenBindingsUI == null)
                 OpenBindingsUI = _defaultOpenBindingsUI;

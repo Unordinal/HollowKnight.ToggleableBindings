@@ -19,13 +19,13 @@ namespace ToggleableBindings
         /// <summary>
         /// Gets the instance of this mod.
         /// </summary>
-        [NotNull, DisallowNull]
+        [NotNull]
         public static ToggleableBindings? Instance { get; private set; }
 
         [QuickSetting, DefaultValue(true)]
         internal static bool EnforceBindingRestrictions { get; private set; } = true;
 
-        [NotNull, DisallowNull]
+        [NotNull]
         internal QuickSettings? Settings { get; private set; }
 
         /// <summary>
