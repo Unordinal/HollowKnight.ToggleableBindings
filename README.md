@@ -7,6 +7,9 @@ The default keybind to open the menu that allows you to turn on and off the bind
 
 [A changelog is available here.](./CHANGELOG.md) Note: This mod does not touch the vanilla bindings menu at all.
 
+# Dependencies
+- [`Vasi`](https://github.com/fifty-six/HollowKnight.Vasi) by [fifty-six](https://github.com/fifty-six)
+
 # Configuration
 `ToggleableBindings` provides multiple configuration settings, such as the ability to allow specific charms even when the Charms binding is active (by default, charms needed for game progression - such as Grimmchild and Kingsoul - are allowed if you enable the setting) and the option to enforce any binding restrictions (you need to be near a bench to apply/restore the default bindings otherwise).
 
