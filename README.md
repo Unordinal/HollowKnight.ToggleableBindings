@@ -87,5 +87,5 @@ In your mod initializer, use the `BindingManager.RegisterBinding` method to regi
 
 If your mod implements `ITogglableMod`, use the `BindingManager.DeregisterBinding` method in your `Unload()` implementation to deregister your binding. This will call `Restore()` on it if it was enabled before deregistering it.
 
-## List of external mods that adds custom bindings: 
-1. [Toggle Rando Split Options](https://github.com/TheMulhima/Toggle-Rando-Split-Options)
+## Mods That Add Custom Bindings
+* [Toggle Rando Split Options](https://github.com/TheMulhima/Toggle-Rando-Split-Options)
