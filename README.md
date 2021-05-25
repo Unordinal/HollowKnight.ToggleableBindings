@@ -86,3 +86,5 @@ Once your binding class is set up to your liking, you just have one or two steps
 In your mod initializer, use the `BindingManager.RegisterBinding` method to register your binding. This will add it to the Bindings menu and allow the player to enable and disable it.
 
 If your mod implements `ITogglableMod`, use the `BindingManager.DeregisterBinding` method in your `Unload()` implementation to deregister your binding. This will call `Restore()` on it if it was enabled before deregistering it.
+
+Example of custom bindings: [Toggle Rando Split Options](https://github.com/TheMulhima/Toggle-Rando-Split-Options)
