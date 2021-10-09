@@ -12,7 +12,7 @@ namespace ToggleableBindings.Extensions
     /// </summary>
     internal static class ReflectionExtensions
     {
-        public static T? GetCustomAttribute<T>(this MemberInfo element, bool inherit) where T : Attribute
+        /*public static T? GetCustomAttribute<T>(this MemberInfo element, bool inherit) where T : Attribute
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
@@ -22,7 +22,7 @@ namespace ToggleableBindings.Extensions
                 throw new AmbiguousMatchException("More than one of the requested attributes was found.");
 
             return attrs.FirstOrDefault();
-        }
+        }*/
 
         public static IEnumerable<T> GetCustomAttributes<T>(this MemberInfo element, bool inherit) where T : Attribute
         {

@@ -76,7 +76,7 @@ namespace ToggleableBindings.HKQuickSettings
             TypeNameHandling = TypeNameHandling.Auto,
             ConstructorHandling = ConstructorHandling.Default,
             ContractResolver = ShouldSerializeContractResolver.Instance,
-            Binder = JsonSerializationBinder.Instance,
+            SerializationBinder = JsonSerializationBinder.Instance,
             Error = LogAndIgnoreSerializationBindingErrors
         };
 

@@ -43,6 +43,7 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnApplied()
         {
+            HudEvents.In += HudEvents_In;
             IL.BossSequenceController.RestoreBindings += BossSequenceController_RestoreBindings;
             foreach (var detour in _detours)
                 detour.Apply();
@@ -60,11 +61,17 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnRestored()
         {
+            HudEvents.In -= HudEvents_In;
             IL.BossSequenceController.RestoreBindings -= BossSequenceController_RestoreBindings;
             foreach (var detour in _detours)
                 detour.Undo();
 
             EventRegister.SendEvent(HideBoundNailEvent);
+        }
+
+        private void HudEvents_In()
+        {
+            EventRegister.SendEvent(ShowBoundNailEvent);
         }
 
         private void BossSequenceController_RestoreBindings(ILContext il)

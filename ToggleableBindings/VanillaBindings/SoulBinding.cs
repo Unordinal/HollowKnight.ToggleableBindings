@@ -1,11 +1,11 @@
 ﻿#nullable enable
 
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
 using ToggleableBindings.Utility;
 using UnityEngine;
 
@@ -39,6 +39,7 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnApplied()
         {
+            HudEvents.In += HudEvents_In;
             On.GGCheckBoundSoul.OnEnter += GGCheckBoundSoul_OnEnter;
             IL.BossSequenceController.RestoreBindings += BossSequenceController_RestoreBindings;
             foreach (var detour in _detours)
@@ -66,6 +67,7 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnRestored()
         {
+            HudEvents.In -= HudEvents_In;
             On.GGCheckBoundSoul.OnEnter -= GGCheckBoundSoul_OnEnter;
             IL.BossSequenceController.RestoreBindings -= BossSequenceController_RestoreBindings;
             foreach (var detour in _detours)
@@ -84,6 +86,11 @@ namespace ToggleableBindings.VanillaBindings
 
             gm.soulOrb_fsm.SendEvent(MPLoseEvent);
             EventRegister.SendEvent(UnbindVesselOrbEvent);
+        }
+
+        private void HudEvents_In()
+        {
+            EventRegister.SendEvent(BindVesselOrbEvent);
         }
 
         private void BossSequenceController_RestoreBindings(ILContext il)

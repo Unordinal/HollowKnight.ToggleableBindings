@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using ToggleableBindings.Collections;
 using ToggleableBindings.Exceptions;
 using ToggleableBindings.Extensions;
 using ToggleableBindings.HKQuickSettings;
@@ -62,7 +61,7 @@ namespace ToggleableBindings
         /// <summary>
         /// Gets a read-only dictionary that provides a view of the currently registered binding types and their associated binding objects.
         /// </summary>
-        public static IReadOnlyDictionary<Type, Binding> RegisteredBindings { get; } = _registeredBindings.AsReadOnly();
+        public static IReadOnlyDictionary<Type, Binding> RegisteredBindings { get; } = _registeredBindings;
 
         internal static void Initialize()
         {
@@ -571,10 +570,13 @@ namespace ToggleableBindings
         {
             lock (_lock)
             {
-                HashSet<Type> shouldBeActiveSet = new HashSet<Type>(bindingTypes);
+                HashSet<Type> shouldBeActiveSet = new(bindingTypes);
 
-                foreach (var (type, binding) in RegisteredBindings)
+                foreach (var item in RegisteredBindings)
                 {
+                    Type type = item.Key;
+                    Binding binding = item.Value;
+
                     bool shouldToggle = shouldBeActiveSet.Contains(type) != binding.IsApplied;
                     if (shouldToggle)
                     {

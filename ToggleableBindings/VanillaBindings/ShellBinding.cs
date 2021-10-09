@@ -42,8 +42,8 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnApplied()
         {
+            HudEvents.In += HudEvents_In;
             On.PlayerData.SetInt += PlayerData_SetInt;
-
             foreach (var detour in _detours)
                 detour.Apply();
 
@@ -52,8 +52,8 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnRestored()
         {
+            HudEvents.In -= HudEvents_In;
             On.PlayerData.SetInt -= PlayerData_SetInt;
-
             foreach (var detour in _detours)
                 detour.Undo();
 
@@ -80,6 +80,11 @@ namespace ToggleableBindings.VanillaBindings
                 maxBoundHealth += 2;
 
             return maxBoundHealth;
+        }
+
+        private void HudEvents_In()
+        {
+            PlayMakerFSM.BroadcastEvent(CharmIndicatorCheckEvent);
         }
 
         private void PlayerData_SetInt(On.PlayerData.orig_SetInt orig, PlayerData self, string intName, int value)

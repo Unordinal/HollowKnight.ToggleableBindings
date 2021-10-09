@@ -6,7 +6,6 @@ using System.Linq;
 using GlobalEnums;
 using InControl;
 using Newtonsoft.Json;
-using ToggleableBindings.Collections;
 using ToggleableBindings.JsonNet;
 
 namespace ToggleableBindings.Input
@@ -32,7 +31,7 @@ namespace ToggleableBindings.Input
                 throw new ArgumentNullException(nameof(actions));
 
             _actions.AddRange(actions);
-            Actions = new ReadOnlyList<HeroActionButton>(_actions);
+            Actions = new List<HeroActionButton>(_actions);
         }
 
         public bool IsSameAs(ActionCombo other)

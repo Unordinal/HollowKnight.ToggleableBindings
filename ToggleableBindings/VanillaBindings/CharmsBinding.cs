@@ -1,15 +1,15 @@
 ﻿#nullable enable
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using HutongGames.PlayMaker;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using Newtonsoft.Json;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using ToggleableBindings.HKQuickSettings;
 using ToggleableBindings.Utility;
 using UnityEngine;
@@ -69,6 +69,7 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnApplied()
         {
+            HudEvents.In += HudEvents_In;
             IL.BossSequenceController.ApplyBindings += BossSequenceController_ApplyBindings;
             IL.BossSequenceController.RestoreBindings += BossSequenceController_RestoreBindings;
             foreach (var detour in _detours)
@@ -108,6 +109,7 @@ namespace ToggleableBindings.VanillaBindings
 
         protected override void OnRestored()
         {
+            HudEvents.In -= HudEvents_In;
             IL.BossSequenceController.ApplyBindings -= BossSequenceController_ApplyBindings;
             IL.BossSequenceController.RestoreBindings -= BossSequenceController_RestoreBindings;
             foreach (var detour in _detours)
@@ -166,6 +168,11 @@ namespace ToggleableBindings.VanillaBindings
         {
             foreach (var charmID in charmIDs)
                 PlayerData.instance.SetBool($"equippedCharm_{charmID}", state);
+        }
+
+        private void HudEvents_In()
+        {
+            EventRegister.SendEvent(ShowBoundCharmsEvent);
         }
 
         private void BossSequenceController_ApplyBindings(ILContext il)
