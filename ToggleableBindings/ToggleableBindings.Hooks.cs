@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using UnityEngine;
-
+using Vasi;
 namespace ToggleableBindings
 {
     public sealed partial class ToggleableBindings
@@ -15,16 +15,31 @@ namespace ToggleableBindings
         {
             On.GameManager.OnApplicationQuit += GameManager_OnApplicationQuit;
             On.GameManager.ReturnToMainMenu += GameManager_ReturnToMainMenu;
+            On.PlayMakerFSM.Start += ModifyHealth;
 
 #if DEBUG
             On.GameManager.Update += GameManager_Update;
 #endif
         }
 
+        private void ModifyHealth(On.PlayMakerFSM.orig_Start orig, PlayMakerFSM self)
+        {
+            orig(self);
+            if (self is
+                {
+                    name: "Health",
+                    FsmName: "Blue Health Control"
+                })
+            {
+                self.GetState("Wait").AddTransition(HutongGames.PlayMaker.FsmEvent.Finished, "Hive Check");
+            }
+        }
+
         private void RemoveHooks()
         {
             On.GameManager.OnApplicationQuit -= GameManager_OnApplicationQuit;
             On.GameManager.ReturnToMainMenu -= GameManager_ReturnToMainMenu;
+            On.PlayMakerFSM.Start -= ModifyHealth;
 
 #if DEBUG
             On.GameManager.Update -= GameManager_Update;
